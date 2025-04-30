@@ -24,5 +24,6 @@ public class JournalApplication {
 
     //PTF --> interface
     //MTM --> actual implementation of PTF
+    //lol
 
 }
