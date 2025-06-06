@@ -20,7 +20,7 @@ public class UserServiceTests {
     @Disabled
     @Test
     public void testFindByUsername() {
-        assertNotNull(userRepository.findByuserName("devesh"));  // Implement your test logic here
+        assertNotNull(userRepository.findByuserName("wtf"));
     }
 
     @Disabled
