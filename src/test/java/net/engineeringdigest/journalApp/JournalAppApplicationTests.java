@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class JournalAppApplicationTests {
 
-//	@Disabled
+	@Disabled("Disabled for CI/CD - requires database connection")
 	@Test
 	void contextLoads() {
 	}
