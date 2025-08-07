@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 //JUNIT TESTING
 @SpringBootTest
+// @Disabled("Disabled for CI/CD - requires database connection")
 public class UserServiceTests {
 
     @Autowired
