@@ -17,16 +17,10 @@ public class UserServiceTests {
     @Autowired
     private UserRepository userRepository;
 
-    @Disabled
     @Test
     public void testFindByUsername() {
-        assertNotNull(userRepository.findByuserName("wtf"));
+        assertNotNull(userRepository.findByuserName("admin"));
     }
 
-    @Disabled
-    @Test
-    public void testEntriesExist(){
-        User user = userRepository.findByuserName("devesh");
-        assertTrue(!user.getJournalEntryList().isEmpty());
-    }
+
 }

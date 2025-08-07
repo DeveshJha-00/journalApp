@@ -12,7 +12,6 @@ public class UserRepositoryImplTests {
     @Autowired
     private UserRepositoryImpl userRepositoryImpl;
 
-    @Disabled
     @Test
     public void testGetUsersForSA() {
         Assertions.assertNotNull(userRepositoryImpl.getUsersForSA());

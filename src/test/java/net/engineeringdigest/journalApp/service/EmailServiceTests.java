@@ -12,10 +12,9 @@ public class EmailServiceTests {
     @Autowired
     private EmailService emailService;
 
-    @Disabled
     @Test
     void testSendMail(){
-        emailService.sendEmail("cafog63099@lewou.com","Testing Email Service",
+        emailService.sendEmail("ashujhaaaa@gmail.com","Return to project",
                 "This is a test email to verify the email service functionality.");
     }
 
