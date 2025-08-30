@@ -1,8 +1,11 @@
 [phases.setup]
 nixPkgs = ["openjdk8"]
 
+[phases.install]
+cmds = ["chmod +x ./mvnw"]
+
 [phases.build]
-cmds = ["./mvnw clean package -DskipTests -Doutputfile=target/mvn-dependency-list.log -B"]
+cmds = ["./mvnw clean package -DskipTests"]
 
 [start]
-cmd = "java -jar target/*.jar"
+cmd = "java -jar target/journalApp-0.0.1-SNAPSHOT.jar"
