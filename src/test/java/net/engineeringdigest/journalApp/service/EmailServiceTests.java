@@ -1,22 +1,48 @@
 package net.engineeringdigest.journalApp.service;
 
 import net.engineeringdigest.journalApp.services.EmailService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest
+import static org.mockito.ArgumentMatchers.any;
+
+@ActiveProfiles("dev")
 public class EmailServiceTests {
 
-    @Autowired
+    @InjectMocks
     private EmailService emailService;
 
-    @Test
-    @Disabled("Disabled for CI/CD - requires database connection")
-    void testSendMail(){
-        emailService.sendEmail("ashujhaaaa@gmail.com","Return to project",
-                "This is a test email to verify the email service functionality.");
+    @Mock
+    private JavaMailSender javaMailSender;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this); // initialize mocks
     }
+
+    @Disabled("Disabled for CI/CD - mocked test, no real email sent")
+    @Test
+    void testSendMail() {
+
+        Mockito.doNothing().when(javaMailSender).send(any(SimpleMailMessage.class));
+
+        emailService.sendEmail(
+                "ashujhaaaa@gmail.com",
+                "Return to project",
+                "This is a test email to verify the email service functionality."
+        );
+
+        Mockito.verify(javaMailSender, Mockito.times(1))
+                .send(any(SimpleMailMessage.class));
+    }
+
 
 }
