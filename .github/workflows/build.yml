@@ -25,6 +25,8 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
+        env:
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: mvn clean compile test-compile
       - name: Set up JDK 17 for SonarQube
         uses: actions/setup-java@v4
@@ -41,4 +43,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: mvn clean verify sonar:sonar -Dsonar.projectKey=journal-project_journalapp -Dsonar.organization=journal-project -Dsonar.host.url=https://sonarcloud.io
