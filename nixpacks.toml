@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["openjdk8"]
+
+[phases.build]
+cmds = ["./mvnw clean package -DskipTests -Doutputfile=target/mvn-dependency-list.log -B"]
+
+[start]
+cmd = "java -jar target/*.jar"
