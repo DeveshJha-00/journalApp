@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -41,7 +42,7 @@ public class UserRepositoryImplTests {
                 .sentimentAnalysis(true)
                 .build();
         when(mongoTemplate.find(any(Query.class), any(Class.class)))
-                .thenReturn(List.of(mockUser));
+                .thenReturn(Arrays.asList(mockUser));
 
         // act
         List<User> result = userRepositoryImpl.getUsersForSA();

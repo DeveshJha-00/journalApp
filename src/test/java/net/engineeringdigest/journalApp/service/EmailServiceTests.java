@@ -29,7 +29,7 @@ public class EmailServiceTests {
         MockitoAnnotations.openMocks(this); // initialize mocks
     }
 
-    @Disabled("Disabled for CI/CD - mocked test, no real email sent")
+//    @Disabled("Disabled for CI/CD - mocked test, no real email sent")
     @Test
     void testSendMail() {
 
