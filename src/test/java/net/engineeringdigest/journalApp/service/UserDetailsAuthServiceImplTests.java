@@ -1,5 +1,6 @@
 package net.engineeringdigest.journalApp.service;
 
+import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.UserRepository;
 import net.engineeringdigest.journalApp.services.UserDetailsAuthServiceImpl;
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles("dev")
+@Import(TestMailConfig.class)
 public class UserDetailsAuthServiceImplTests {
 
     @InjectMocks

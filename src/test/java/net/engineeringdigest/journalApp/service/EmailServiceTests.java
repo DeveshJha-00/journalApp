@@ -1,5 +1,6 @@
 package net.engineeringdigest.journalApp.service;
 
+import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.services.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -8,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,6 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.mockito.ArgumentMatchers.any;
 
 @ActiveProfiles("dev")
+@Import(TestMailConfig.class)
 public class EmailServiceTests {
 
     @InjectMocks

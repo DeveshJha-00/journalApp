@@ -1,11 +1,13 @@
 package net.engineeringdigest.journalApp.repository;
 
 
+import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ActiveProfiles("dev")
+@Import(TestMailConfig.class)
 public class UserRepositoryImplTests {
 
     @InjectMocks
