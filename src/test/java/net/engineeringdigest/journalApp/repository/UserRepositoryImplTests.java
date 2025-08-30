@@ -1,23 +1,53 @@
 package net.engineeringdigest.journalApp.repository;
 
-import com.mongodb.assertions.Assertions;
+
+import net.engineeringdigest.journalApp.entity.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.*;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.ActiveProfiles;
+import java.util.ArrayList;
+import java.util.List;
 
-@SpringBootTest
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 @ActiveProfiles("dev")
 public class UserRepositoryImplTests {
 
-    @Autowired
-    private UserRepositoryImpl userRepositoryImpl;
+    @InjectMocks
+    private  UserRepositoryImpl userRepositoryImpl;
 
+    @Mock
+    private MongoTemplate mongoTemplate;
+
+    @BeforeEach
+    void setUp(){
+        MockitoAnnotations.initMocks(this);
+    }
+
+    @Disabled("Disabled for CI/CD - mocked test, no real DB call")
     @Test
-    @Disabled("Disabled for CI/CD - requires database connection")
     public void testGetUsersForSA() {
-        Assertions.assertNotNull(userRepositoryImpl.getUsersForSA());
+        User mockUser = User.builder()
+                .userName("admin")
+                .password("admin")
+                .email("admin@example.com")
+                .roles(new ArrayList<>())
+                .sentimentAnalysis(true)
+                .build();
+        when(mongoTemplate.find(any(Query.class), any(Class.class)))
+                .thenReturn(List.of(mockUser));
+
+        // act
+        List<User> result = userRepositoryImpl.getUsersForSA();
+
+        // assert
+        assertNotNull(result);
     }
 
 }
