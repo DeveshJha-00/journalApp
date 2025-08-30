@@ -3,30 +3,52 @@ package net.engineeringdigest.journalApp.service;
 import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.UserRepository;
-import org.junit.jupiter.api.Disabled;
+import net.engineeringdigest.journalApp.services.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.ArrayList;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
-//JUNIT TESTING
-@SpringBootTest
-@Import(TestMailConfig.class)
 @ActiveProfiles("dev")
-//@Disabled("Disabled for CI/CD - requires database connection")
+@Import(TestMailConfig.class)
 public class UserServiceTests {
 
-    @Autowired
-    private UserRepository userRepository;
+    @InjectMocks
+    private UserService userService;   // class under test (replace with actual service if needed)
+
+    @Mock
+    private UserRepository userRepository;  // dependency
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     public void testFindByUsername() {
-        assertNotNull(userRepository.findByuserName("admin"));
+        // arrange - mock repository response
+        when(userRepository.findByuserName(anyString()))
+                .thenReturn(User.builder()
+                        .userName("admin")
+                        .password("admin")
+                        .email("admin@example.com")
+                        .roles(new ArrayList<>())
+                        .sentimentAnalysis(true)
+                        .build());
+
+        // act
+        User result = userRepository.findByuserName("admin");
+
+        // assert
+        assertNotNull(result);
     }
-
-
 }
