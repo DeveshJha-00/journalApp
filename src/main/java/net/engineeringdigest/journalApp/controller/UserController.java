@@ -18,9 +18,6 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-//    @Autowired
-//    private UserRepository userRepository;
-
 
     @PutMapping() 
     public ResponseEntity<?> updateUser(@RequestBody User user){

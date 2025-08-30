@@ -28,7 +28,7 @@ public class EmailServiceTests {
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this); // initialize mocks
+        MockitoAnnotations.openMocks(this);
     }
 
 //    @Disabled("Disabled for CI/CD - mocked test, no real email sent")

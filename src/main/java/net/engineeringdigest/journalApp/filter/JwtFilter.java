@@ -1,5 +1,6 @@
 package net.engineeringdigest.journalApp.filter;
 
+import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,7 +17,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class JwtFilter  extends OncePerRequestFilter{
+
     @Autowired
     private UserDetailsService userDetailsService;
 

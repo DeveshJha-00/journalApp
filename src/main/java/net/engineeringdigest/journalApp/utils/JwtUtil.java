@@ -1,5 +1,7 @@
 package net.engineeringdigest.journalApp.utils;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -12,7 +14,8 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    private String SECRET_KEY = "TaK+HaV^uvCHEFsEVfypW#7g9^k*Z8$V";
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
 
     private SecretKey getSigningKey() { //since signWith() expects a key type, we convert it
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
@@ -58,6 +61,8 @@ public class JwtUtil {
 
     public Boolean validateToken(String token) {
         return !isTokenExpired(token);
+//        final String username = extractUsername(token);
+//        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
 

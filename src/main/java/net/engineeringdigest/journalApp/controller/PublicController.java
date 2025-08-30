@@ -45,9 +45,8 @@ public class PublicController {
     public ResponseEntity<String> login(@RequestBody User user) {
         try{
             String name = user.getUserName(); String pw = user.getPassword();
-            Authentication authenticate = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(name, pw));
-            UserDetails userDetails = userDetailsAuthService.loadUserByUsername(user.getUserName());
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(name, pw));
+            UserDetails userDetails = userDetailsAuthService.loadUserByUsername(name);
             String jwt = jwtUtil.generateToken(userDetails.getUsername());
             return new ResponseEntity<>(jwt, HttpStatus.OK);
         }catch (Exception e){
@@ -57,5 +56,7 @@ public class PublicController {
         }
 
     }
+
+
 
 }

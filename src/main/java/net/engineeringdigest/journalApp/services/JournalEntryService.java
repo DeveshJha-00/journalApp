@@ -39,10 +39,6 @@ public class JournalEntryService {
         userService.saveUser(user);
     }
 
-//    public void saveEntry(JournalEntry entry){
-//        journalEntryRepository.save(entry);
-//    }
-
     @Transactional
     public boolean deleteById(ObjectId id, String userName){
         boolean removed = false;
@@ -60,7 +56,6 @@ public class JournalEntryService {
         return removed;
     }
 
-//    public List<JournalEntry> findByUserName(String userName){}
 
 }
 
