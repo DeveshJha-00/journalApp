@@ -1,8 +1,8 @@
 [phases.setup]
-nixPkgs = ["jdk8", "maven"]
+nixPkgs = ["maven", "jdk8"]
 
 [phases.build]
-cmds = ["./mvnw -DskipTests clean package -Pproduction"]
+cmds = ["mvn clean package -DskipTests"]
 
 [start]
-cmd = "java -jar target/journalApp-0.0.1-SNAPSHOT.jar"
+cmd = "java -jar target/*.jar"
