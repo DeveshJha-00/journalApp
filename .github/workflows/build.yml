@@ -26,7 +26,16 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          FROM_MAIL_MAILID: ${{ secrets.FROM_MAIL_MAILID }}
+          FROM_MAIL_TEMP_PASSWORD: ${{ secrets.FROM_MAIL_TEMP_PASSWORD }}
+          FROM_MAIL_PORT: ${{ secrets.FROM_MAIL_PORT }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+
         run: mvn clean compile test-compile
       - name: Set up JDK 17 for SonarQube
         uses: actions/setup-java@v4
@@ -43,5 +52,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+          FROM_MAIL_MAILID: ${{ secrets.FROM_MAIL_MAILID }}
+          FROM_MAIL_TEMP_PASSWORD: ${{ secrets.FROM_MAIL_TEMP_PASSWORD }}
+          FROM_MAIL_PORT: ${{ secrets.FROM_MAIL_PORT }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
         run: mvn clean verify sonar:sonar -Dsonar.projectKey=journal-project_journalapp -Dsonar.organization=journal-project -Dsonar.host.url=https://sonarcloud.io
