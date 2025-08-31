@@ -1,9 +1,6 @@
 [phases.setup]
 nixPkgs = ["maven", "jdk8"]
 
-[variables]
-MAVEN_WRAPPER_SKIP = "true"
-
 [phases.build]
 cmds = ["mvn clean package -DskipTests"]
 
