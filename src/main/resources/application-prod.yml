@@ -1,0 +1,24 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGO_URI}
+      database: ${MONGO_DB_NAME}
+      auto-index-creation: true
+      allow-circular-references: true
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+
+  mail:
+    host: smtp.gmail.com
+    port: ${FROM_MAIL_PORT} 587
+    username: ${FROM_MAIL_MAILID}
+    password: ${FROM_MAIL_TEMP_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+jwt:
+  secret: ${JWT_SECRET_KEY}

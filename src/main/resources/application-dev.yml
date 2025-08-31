@@ -1,0 +1,44 @@
+spring:
+  redis:
+    host : ${REDIS_HOST}
+    port : ${REDIS_PORT}
+    password : ${REDIS_PASSWORD}
+
+  data:
+    mongodb:
+      uri : ${MONGO_URI}
+      database: ${MONGO_DB_NAME}
+      auto-index-creation: true
+      allow-circular-references: true
+
+  mail:
+    host : smtp.gmail.com
+    port : ${FROM_MAIL_PORT} 587
+    username : ${FROM_MAIL_MAILID}
+    password : ${FROM_MAIL_TEMP_PASSWORD}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+
+logging:
+  level:
+    org.springframework.boot.autoconfigure.mail: DEBUG
+    # root: ERROR
+
+
+#TO IMPLEMENT LOGGING
+#to show nothing :
+#logging:
+#  level:
+#    root : ERROR
+
+#for different levels :
+#logging:
+#  level:
+#    root: INFO
+#    org.springframework.web: DEBUG
+#    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+#    org.mongodb.driver: DEBUG
