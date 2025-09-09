@@ -125,8 +125,9 @@ public class AdminController {
         envStatus.put("REDIS_PORT", environment.getProperty("spring.redis.port") != null ? "✅ Set" : "❌ Missing");
         envStatus.put("JWT_SECRET", environment.getProperty("jwt.secret") != null ? "✅ Set" : "❌ Missing");
         envStatus.put("GEMINI_API_KEY", environment.getProperty("gemini.api.key") != null ? "✅ Set" : "❌ Missing");
-        envStatus.put("FROM_MAIL_MAILID", environment.getProperty("spring.mail.username") != null ? "✅ Set" : "❌ Missing");
-
+//        envStatus.put("FROM_MAIL_MAILID", environment.getProperty("spring.mail.username") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("RESEND_API_KEY", environment.getProperty("resend.api.key") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("FROM_RESEND_EMAIL", environment.getProperty("resend.from.email") != null ? "✅ Set" : "❌ Missing");
         // Add active profile info
         String[] activeProfiles = environment.getActiveProfiles();
         envStatus.put("ACTIVE_PROFILES", activeProfiles.length > 0 ? String.join(",", activeProfiles) : "default");

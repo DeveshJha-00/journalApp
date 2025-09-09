@@ -1,6 +1,12 @@
 server:
   port: ${PORT:8080}
 
+resend:
+  api:
+    key: ${RESEND_API_KEY}
+  from:
+    email: ${FROM_RESEND_EMAIL}
+
 spring:
   redis:
     host : ${REDIS_HOST}

@@ -41,10 +41,7 @@ public class BiweeklyReportService {
     @Value("${report.email.subject:Your Bi-weekly Mental Health Insights}")
     private String reportEmailSubject;
 
-    /**
-     * Scheduled method to generate and send bi-weekly reports
-     * Runs every 14 days at 9 AM
-     */
+
 //    @Scheduled(cron = "0 0 9 */14 * ?")
     @Scheduled(cron = "0 */3 * * * ?")  // Every 3 minutes
     public void generateAndSendBiweeklyReports() {
