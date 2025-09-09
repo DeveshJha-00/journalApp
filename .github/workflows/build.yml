@@ -31,13 +31,14 @@ jobs:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          FROM_MAIL_MAILID: ${{ secrets.FROM_MAIL_MAILID }}
-          FROM_MAIL_TEMP_PASSWORD: ${{ secrets.FROM_MAIL_TEMP_PASSWORD }}
-          FROM_MAIL_PORT: ${{ secrets.FROM_MAIL_PORT }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           FROM_RESEND_EMAIL: ${{ secrets.FROM_RESEND_EMAIL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          SENDGRID_FROM_NAME: ${{ secrets.SENDGRID_FROM_NAME }}
+
 
         run: mvn clean compile test-compile
       - name: Set up JDK 17 for SonarQube
@@ -60,11 +61,10 @@ jobs:
           REDIS_HOST: ${{ secrets.REDIS_HOST }}
           REDIS_PORT: ${{ secrets.REDIS_PORT }}
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          FROM_MAIL_MAILID: ${{ secrets.FROM_MAIL_MAILID }}
-          FROM_MAIL_TEMP_PASSWORD: ${{ secrets.FROM_MAIL_TEMP_PASSWORD }}
-          FROM_MAIL_PORT: ${{ secrets.FROM_MAIL_PORT }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          FROM_RESEND_EMAIL: ${{ secrets.FROM_RESEND_EMAIL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
+          SENDGRID_FROM_NAME: ${{ secrets.SENDGRID_FROM_NAME }}
+
         run: mvn clean verify sonar:sonar -Dsonar.projectKey=journal-project_journalapp -Dsonar.organization=journal-project -Dsonar.host.url=https://sonarcloud.io

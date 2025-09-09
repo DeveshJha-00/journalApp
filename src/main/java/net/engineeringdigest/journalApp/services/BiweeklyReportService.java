@@ -43,7 +43,7 @@ public class BiweeklyReportService {
 
 
 //    @Scheduled(cron = "0 0 9 */14 * ?")
-    @Scheduled(cron = "0 */3 * * * ?")  // Every 3 minutes
+    @Scheduled(cron = "0 */2 * * * ?")  // Every 3 minutes
     public void generateAndSendBiweeklyReports() {
         log.info("Starting bi-weekly report generation process");
         
