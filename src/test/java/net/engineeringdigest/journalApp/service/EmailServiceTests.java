@@ -39,7 +39,7 @@ public class EmailServiceTests {
 
         emailService.sendEmail(
                 "ashujhaaaa@gmail.com",
-                "Return to project",
+                "Return to sentiment analysis",
                 "This is a test email to verify the email service functionality."
         );
 

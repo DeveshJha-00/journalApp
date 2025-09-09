@@ -78,26 +78,26 @@ public class UserService {
     }
 
     public User findByUsername(String userName){
-        // Try to get from cache first using manual caching
-        String userCacheKey = "user:username:" + userName;
-        User cachedUser = redisService.get(userCacheKey, User.class);
+        // TEMPORARILY DISABLED USER CACHING - ObjectId serialization issue
+        // TODO: Re-enable after ObjectId serialization is properly configured
 
-        if (cachedUser != null) {
-            log.debug("User found in cache: {}", userName);
-            return cachedUser;
-        }
+        // String userCacheKey = "user:username:" + userName;
+        // User cachedUser = redisService.get(userCacheKey, User.class);
 
-        // If not in cache, get from database
+        // if (cachedUser != null) {
+        //     log.debug("User found in cache: {}", userName);
+        //     return cachedUser;
+        // }
+
+        // Get directly from database
         User user = userRepository.findByuserName(userName);
         if (user != null) {
-            // Cache the user with username key
-            redisService.set(userCacheKey, user, RedisService.USER_PROFILE_TTL);
+            log.debug("User found in database: {}", userName);
+            // CACHING DISABLED: redisService.set(userCacheKey, user, RedisService.USER_PROFILE_TTL);
+            // CACHING DISABLED: String userProfileKey = redisService.buildUserProfileKey(user.getId().toHexString());
+            // CACHING DISABLED: redisService.set(userProfileKey, user, RedisService.USER_PROFILE_TTL);
 
-            // Also cache user profile separately for faster access by ID
-            String userProfileKey = redisService.buildUserProfileKey(user.getId().toHexString());
-            redisService.set(userProfileKey, user, RedisService.USER_PROFILE_TTL);
-
-            log.debug("User cached: {}", userName);
+            // log.debug("User cached: {}", userName);
         }
         return user;
     }

@@ -5,9 +5,8 @@ import lombok.NonNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
-import java.util.Date;
+import java.util.List;
 
 
 @Document(collection = "journal_entries")
@@ -22,5 +21,12 @@ public class JournalEntry {
     private String content;
     private LocalDateTime date;
     private ObjectId collectionId;
+
+    // Sentiment Analysis Fields
+    private Double sentimentScore; // Range: -1.0 (very negative) to 1.0 (very positive)
+    private String sentimentLabel; // "positive", "negative", "neutral"
+    private List<String> emotions; // ["joy", "sadness", "anxiety", etc.]
+    private List<String> keywords; // Key themes extracted from the entry
+    private LocalDateTime sentimentAnalyzedAt;
 
 }

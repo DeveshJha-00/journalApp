@@ -26,6 +26,8 @@ public class JournalEntryService {
     private CollectionService collectionService;
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private SentimentAnalysisService sentimentAnalysisService;
 
 
     public List<JournalEntry> getAllEntries(){
@@ -62,7 +64,20 @@ public class JournalEntryService {
         user.getJournalEntryList().add(saved);
         userService.saveUser(user);
 
-        // Cache the saved entry
+        // Perform sentiment analysis if user has opted in
+        if (user.isSentimentAnalysis()) {
+            try {
+                sentimentAnalysisService.analyzeSentiment(saved);
+                // Save the entry again with sentiment data
+                journalEntryRepository.save(saved);
+                log.debug("Sentiment analysis completed for entry: {}", saved.getId());
+            } catch (Exception e) {
+                log.error("Failed to analyze sentiment for entry {}: {}", saved.getId(), e.getMessage());
+                // Continue without sentiment analysis - don't fail the entire operation
+            }
+        }
+
+        // Cache the saved entry (with sentiment data if analyzed)
         String entryKey = redisService.buildEntryKey(saved.getId().toHexString());
         redisService.set(entryKey, saved, RedisService.ENTRIES_TTL);
 

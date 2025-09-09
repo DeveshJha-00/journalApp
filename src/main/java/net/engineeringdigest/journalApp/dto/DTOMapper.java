@@ -61,7 +61,12 @@ public class DTOMapper {
             entry.getContent(),
             entry.getDate(),
             entry.getCollectionId() != null ? entry.getCollectionId().toHexString() : null,
-            collectionName
+            collectionName,
+            entry.getSentimentScore(),
+            entry.getSentimentLabel(),
+            entry.getEmotions(),
+            entry.getKeywords(),
+            entry.getSentimentAnalyzedAt()
         );
     }
 

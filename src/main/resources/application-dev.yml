@@ -26,6 +26,27 @@ spring:
 jwt:
   secret: ${JWT_SECRET_KEY}
 
+# Google Gemini Configuration
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}
+    model: ${GEMINI_MODEL:gemini-1.5-flash}
+    base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+    max-tokens: ${GEMINI_MAX_TOKENS:8192}
+    temperature: ${GEMINI_TEMPERATURE:0.3}
+    request-timeout: ${GEMINI_REQUEST_TIMEOUT:30000}
+
+# Report Configuration
+report:
+  frequency:
+    days: ${REPORT_FREQUENCY_DAYS:14}
+  max:
+    entries: ${MAX_ENTRIES_PER_REPORT:50}
+  min:
+    entries: ${MIN_ENTRIES_FOR_REPORT:3}
+  email:
+    subject: ${REPORT_EMAIL_SUBJECT:Your Bi-weekly Mental Health Insights}
+
 logging:
   level:
     org.springframework.boot.autoconfigure.mail: DEBUG
