@@ -1,6 +1,11 @@
 package net.engineeringdigest.journalApp.controller;
+import net.engineeringdigest.journalApp.dto.JournalEntryRequestDTO;
+import net.engineeringdigest.journalApp.dto.JournalEntryResponseDTO;
+import net.engineeringdigest.journalApp.dto.DTOMapper;
+import net.engineeringdigest.journalApp.entity.Collection;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
+import net.engineeringdigest.journalApp.services.CollectionService;
 import net.engineeringdigest.journalApp.services.JournalEntryService;
 import net.engineeringdigest.journalApp.services.UserService;
 import org.bson.types.ObjectId;
@@ -11,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,21 +32,37 @@ public class JournalEntryController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private CollectionService collectionService;
+
+    @Autowired
+    private DTOMapper dtoMapper;
+
 
     @GetMapping()
-    public ResponseEntity<List<JournalEntry>> getAllEntriesOfUser(){
+    public ResponseEntity<List<JournalEntryResponseDTO>> getAllEntriesOfUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         User user = userService.findByUsername(userName);
         List<JournalEntry> journalEntriesofUser = user.getJournalEntryList();
         if (journalEntriesofUser!=null && !journalEntriesofUser.isEmpty()){
-            return new ResponseEntity<>(journalEntriesofUser, HttpStatus.OK);
+            List<JournalEntryResponseDTO> responseDTOs = journalEntriesofUser.stream()
+                    .map(entry -> {
+                        String collectionName = null;
+                        if (entry.getCollectionId() != null) {
+                            Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
+                            collectionName = collection.map(Collection::getName).orElse(null);
+                        }
+                        return dtoMapper.toResponseDTO(entry, collectionName);
+                    })
+                    .collect(Collectors.toList());
+            return new ResponseEntity<>(responseDTOs, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/id/{targetId}")
-    public ResponseEntity<JournalEntry> getEntryById(@PathVariable ObjectId targetId){
+    public ResponseEntity<JournalEntryResponseDTO> getEntryById(@PathVariable ObjectId targetId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         User user = userService.findByUsername(userName);
@@ -48,21 +70,36 @@ public class JournalEntryController {
         if (!collect.isEmpty()){
             Optional<JournalEntry> journalEntry =  journalEntryService.getEntryById(targetId);
             if (journalEntry.isPresent()){
-                return new ResponseEntity<>(journalEntry.get(), HttpStatus.OK);
+                JournalEntry entry = journalEntry.get();
+                String collectionName = null;
+                if (entry.getCollectionId() != null) {
+                    Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
+                    collectionName = collection.map(Collection::getName).orElse(null);
+                }
+                JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
+                return new ResponseEntity<>(responseDTO, HttpStatus.OK);
             }
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PostMapping() // (C)reate
-    public  ResponseEntity<JournalEntry>  postEntries(@RequestBody JournalEntry entry){
+    public  ResponseEntity<JournalEntryResponseDTO>  postEntries(@Valid @RequestBody JournalEntryRequestDTO entryRequestDTO){
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();
+            JournalEntry entry = dtoMapper.toEntity(entryRequestDTO);
             journalEntryService.saveEntry(entry, userName);
-            return new ResponseEntity<>(entry, HttpStatus.CREATED);
+
+            String collectionName = null;
+            if (entry.getCollectionId() != null) {
+                Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
+                collectionName = collection.map(Collection::getName).orElse(null);
+            }
+            JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
+            return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
         } catch (Exception e){
-            return new ResponseEntity<>(entry, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -80,7 +117,7 @@ public class JournalEntryController {
 
 
     @PutMapping("/id/{targetId}") // (U)pdate
-    public ResponseEntity<?> updateEntry(@PathVariable ObjectId targetId, @RequestBody JournalEntry newEntry){
+    public ResponseEntity<JournalEntryResponseDTO> updateEntry(@PathVariable ObjectId targetId, @Valid @RequestBody JournalEntryRequestDTO entryRequestDTO){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         User user = userService.findByUsername(userName);
@@ -88,15 +125,45 @@ public class JournalEntryController {
         if (!collect.isEmpty()){
             Optional<JournalEntry> journalEntry =  journalEntryService.getEntryById(targetId);
             if (journalEntry.isPresent()){
-                JournalEntry oldEntry = journalEntry.get();
-                oldEntry.setTitle(newEntry.getTitle()!=null && !newEntry.getTitle().isEmpty() ? newEntry.getTitle():oldEntry.getTitle());
-                oldEntry.setContent(newEntry.getContent()!=null && !newEntry.getContent().isEmpty() ? newEntry.getContent(): oldEntry.getContent());
-                journalEntryService.saveEntry(oldEntry, userName);
-                return new ResponseEntity<>(oldEntry, HttpStatus.OK);
+                JournalEntry entry = journalEntry.get();
+                dtoMapper.updateEntityFromDTO(entry, entryRequestDTO);
+                journalEntryService.saveEntry(entry, userName);
+
+                String collectionName = null;
+                if (entry.getCollectionId() != null) {
+                    Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
+                    collectionName = collection.map(Collection::getName).orElse(null);
+                }
+                JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
+                return new ResponseEntity<>(responseDTO, HttpStatus.OK);
             }
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @PutMapping("/id/{targetId}/collection/{collectionId}")
+    public ResponseEntity<?> assignToCollection(@PathVariable ObjectId targetId, @PathVariable ObjectId collectionId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        boolean assigned = journalEntryService.assignToCollection(targetId, collectionId, userName);
+        if (assigned) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/id/{targetId}/collection")
+    public ResponseEntity<?> removeFromCollection(@PathVariable ObjectId targetId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        boolean assigned = journalEntryService.assignToCollection(targetId, null, userName);
+        if (assigned) {
+            return new ResponseEntity<>(HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
 

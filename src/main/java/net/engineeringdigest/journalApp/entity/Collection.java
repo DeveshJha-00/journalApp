@@ -1,26 +1,31 @@
 package net.engineeringdigest.journalApp.entity;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.web.bind.annotation.RestController;
+
 import java.time.LocalDateTime;
-import java.util.Date;
 
-
-@Document(collection = "journal_entries")
+@Document(collection = "collections")
 @Data
 @NoArgsConstructor
-public class JournalEntry {
+public class Collection {
 
     @Id
     private ObjectId id;
-    @NonNull
-    private String title;
-    private String content;
-    private LocalDateTime date;
-    private ObjectId collectionId;
 
+    @NonNull
+    private String name;
+
+    private String description;
+
+    private String color;
+
+    @NonNull
+    private ObjectId userId;
+
+    private LocalDateTime createdDate;
 }

@@ -7,7 +7,6 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -18,10 +17,20 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RedisService redisService;
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     public void saveUser(User user){
         userRepository.save(user);
+        // Invalidate user cache
+        if (user.getId() != null) {
+            redisService.invalidateUserCache(user.getId().toHexString());
+            // Also invalidate username-based cache
+            redisService.deletePattern("user:username:" + user.getUserName());
+        }
     }
 
     public void saveNewUser(User user){
@@ -59,11 +68,38 @@ public class UserService {
     }
 
     public void deleteUserByUserName(String userName){
+        User user = findByUsername(userName);
+        if (user != null) {
+            redisService.invalidateUserCache(user.getId().toHexString());
+            // Also invalidate username-based cache
+            redisService.delete("user:username:" + userName);
+        }
         userRepository.deleteByUserName(userName);
     }
 
     public User findByUsername(String userName){
-        return userRepository.findByuserName(userName);
+        // Try to get from cache first using manual caching
+        String userCacheKey = "user:username:" + userName;
+        User cachedUser = redisService.get(userCacheKey, User.class);
+
+        if (cachedUser != null) {
+            log.debug("User found in cache: {}", userName);
+            return cachedUser;
+        }
+
+        // If not in cache, get from database
+        User user = userRepository.findByuserName(userName);
+        if (user != null) {
+            // Cache the user with username key
+            redisService.set(userCacheKey, user, RedisService.USER_PROFILE_TTL);
+
+            // Also cache user profile separately for faster access by ID
+            String userProfileKey = redisService.buildUserProfileKey(user.getId().toHexString());
+            redisService.set(userProfileKey, user, RedisService.USER_PROFILE_TTL);
+
+            log.debug("User cached: {}", userName);
+        }
+        return user;
     }
 
 

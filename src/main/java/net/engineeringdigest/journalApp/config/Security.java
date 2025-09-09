@@ -28,7 +28,7 @@ public class Security extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/journals/**","/user/**").authenticated()
+                .antMatchers("/journals/**","/user/**","/collections/**").authenticated()
                 .antMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().permitAll();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
