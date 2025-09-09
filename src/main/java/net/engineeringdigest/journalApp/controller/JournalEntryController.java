@@ -1,4 +1,5 @@
 package net.engineeringdigest.journalApp.controller;
+import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.dto.JournalEntryRequestDTO;
 import net.engineeringdigest.journalApp.dto.JournalEntryResponseDTO;
 import net.engineeringdigest.journalApp.dto.DTOMapper;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/journals")
+@Slf4j
 public class JournalEntryController {
 
     @Autowired
@@ -86,19 +88,35 @@ public class JournalEntryController {
     @PostMapping() // (C)reate
     public  ResponseEntity<JournalEntryResponseDTO>  postEntries(@Valid @RequestBody JournalEntryRequestDTO entryRequestDTO){
         try {
+            log.info("📝 Creating journal entry for title: '{}'", entryRequestDTO.getTitle());
+
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String userName = authentication.getName();
+            log.info("👤 Authenticated user: {}", userName);
+
             JournalEntry entry = dtoMapper.toEntity(entryRequestDTO);
+            log.info("🔄 Mapped DTO to entity, calling saveEntry service");
+
             journalEntryService.saveEntry(entry, userName);
+            log.info("✅ Journal entry saved successfully with ID: {}", entry.getId());
 
             String collectionName = null;
             if (entry.getCollectionId() != null) {
                 Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
                 collectionName = collection.map(Collection::getName).orElse(null);
+                log.info("📁 Collection resolved: {}", collectionName);
             }
+
             JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
+            log.info("✅ Journal entry created successfully for user: {}", userName);
             return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
         } catch (Exception e){
+            log.error("❌ Error creating journal entry for user: {}",
+                     SecurityContextHolder.getContext().getAuthentication().getName(), e);
+            log.error("📋 Request details - Title: '{}', Content length: {}, CollectionId: '{}'",
+                     entryRequestDTO.getTitle(),
+                     entryRequestDTO.getContent() != null ? entryRequestDTO.getContent().length() : 0,
+                     entryRequestDTO.getCollectionId());
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }

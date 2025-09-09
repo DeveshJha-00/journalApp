@@ -5,11 +5,15 @@ import net.engineeringdigest.journalApp.services.BiweeklyReportService;
 import net.engineeringdigest.journalApp.services.EmailService;
 import net.engineeringdigest.journalApp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin")
@@ -23,6 +27,9 @@ public class AdminController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private Environment environment;
 
     @GetMapping("/all-users")
     public ResponseEntity<?> getAllUsers() {
@@ -102,6 +109,29 @@ public class AdminController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error clearing cache: " + e.getMessage());
         }
+    }
+
+    /**
+     * Environment diagnostic endpoint for Railway deployment debugging
+     */
+    @GetMapping("/env-check")
+    public ResponseEntity<Map<String, String>> checkEnvironment() {
+        Map<String, String> envStatus = new HashMap<>();
+
+        // Check critical environment variables (without exposing sensitive values)
+        envStatus.put("MONGO_URI", environment.getProperty("spring.data.mongodb.uri") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("MONGO_DB_NAME", environment.getProperty("spring.data.mongodb.database") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("REDIS_HOST", environment.getProperty("spring.redis.host") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("REDIS_PORT", environment.getProperty("spring.redis.port") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("JWT_SECRET", environment.getProperty("jwt.secret") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("GEMINI_API_KEY", environment.getProperty("gemini.api.key") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("FROM_MAIL_MAILID", environment.getProperty("spring.mail.username") != null ? "✅ Set" : "❌ Missing");
+
+        // Add active profile info
+        String[] activeProfiles = environment.getActiveProfiles();
+        envStatus.put("ACTIVE_PROFILES", activeProfiles.length > 0 ? String.join(",", activeProfiles) : "default");
+
+        return ResponseEntity.ok(envStatus);
     }
 
 }
