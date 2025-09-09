@@ -56,7 +56,7 @@ public class JournalEntryService {
         return entry;
     }
 
-    @Transactional
+    // @Transactional - Disabled for Railway MongoDB (single instance, no replica set)
     public void saveEntry(JournalEntry entry, String userName){
         User user = userService.findByUsername(userName);
         entry.setDate(LocalDateTime.now());

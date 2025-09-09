@@ -81,7 +81,7 @@ public class CollectionService {
         return collection;
     }
 
-    @Transactional
+    // @Transactional - Disabled for Railway MongoDB (single instance, no replica set)
     public Collection saveCollection(Collection collection, String userName) {
         User user = userService.findByUsername(userName);
         collection.setUserId(user.getId());
