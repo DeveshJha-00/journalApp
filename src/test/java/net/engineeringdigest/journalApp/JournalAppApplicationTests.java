@@ -1,5 +1,6 @@
 package net.engineeringdigest.journalApp;
 
+
 import net.engineeringdigest.journalApp.config.TestMailConfig;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

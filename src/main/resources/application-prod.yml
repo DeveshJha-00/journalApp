@@ -37,7 +37,7 @@ gemini:
 # Report Configuration
 report:
   frequency:
-    days: ${REPORT_FREQUENCY_DAYS:1}
+    days: ${REPORT_FREQUENCY_DAYS:14}
   max:
     entries: ${MAX_ENTRIES_PER_REPORT:50}
   min:
