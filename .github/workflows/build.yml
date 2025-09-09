@@ -35,6 +35,7 @@ jobs:
           FROM_MAIL_TEMP_PASSWORD: ${{ secrets.FROM_MAIL_TEMP_PASSWORD }}
           FROM_MAIL_PORT: ${{ secrets.FROM_MAIL_PORT }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
         run: mvn clean compile test-compile
       - name: Set up JDK 17 for SonarQube
@@ -61,4 +62,5 @@ jobs:
           FROM_MAIL_TEMP_PASSWORD: ${{ secrets.FROM_MAIL_TEMP_PASSWORD }}
           FROM_MAIL_PORT: ${{ secrets.FROM_MAIL_PORT }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: mvn clean verify sonar:sonar -Dsonar.projectKey=journal-project_journalapp -Dsonar.organization=journal-project -Dsonar.host.url=https://sonarcloud.io
