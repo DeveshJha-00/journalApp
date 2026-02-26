@@ -1,54 +1,44 @@
 package net.engineeringdigest.journalApp.service;
 
-import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.UserRepository;
 import net.engineeringdigest.journalApp.services.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-@ActiveProfiles("dev")
-@Import(TestMailConfig.class)
-public class UserServiceTests {
-
-    @InjectMocks
-    private UserService userService;   // class under test (replace with actual service if needed)
+@ExtendWith(MockitoExtension.class)
+class UserServiceTests {
 
     @Mock
-    private UserRepository userRepository;  // dependency
+    private UserRepository userRepository;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+    @InjectMocks
+    private UserService userService;
 
     @Test
-    public void testFindByUsername() {
-        // arrange - mock repository response
-        when(userRepository.findByuserName(anyString()))
-                .thenReturn(User.builder()
-                        .userName("admin")
-                        .password("admin")
-                        .email("admin@example.com")
-                        .roles(new ArrayList<>())
-                        .sentimentAnalysis(true)
-                        .build());
+    void findByUsername_shouldReturnUser() {
 
-        // act
-        User result = userRepository.findByuserName("admin");
+        User mockUser = User.builder()
+                .userName("admin")
+                .password("admin")
+                .email("admin@example.com")
+                .roles(new ArrayList<>())
+                .sentimentAnalysis(true)
+                .build();
 
-        // assert
-        assertNotNull(result);
+        when(userRepository.findByuserName("admin"))
+                .thenReturn(mockUser);
+
+        User result = userService.findByUsername("admin");
+
+        assertEquals("admin", result.getUserName());
     }
 }

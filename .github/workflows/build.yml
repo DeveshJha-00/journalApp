@@ -1,30 +1,36 @@
 name: SonarQube
+
 on:
   push:
     branches:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   build:
-    name: Build and analyze
+    name: Build and Analyze
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Set up JDK 8 for build
+          fetch-depth: 0
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: 8
+          java-version: 17
           distribution: 'zulu'
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build with Maven
+
+      - name: Build and Run Tests
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
           MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
@@ -33,38 +39,23 @@ jobs:
           REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
           JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          FROM_RESEND_EMAIL: ${{ secrets.FROM_RESEND_EMAIL }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
-          SENDGRID_FROM_NAME: ${{ secrets.SENDGRID_FROM_NAME }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+          BREVO_FROM_EMAIL: ${{ secrets.BREVO_FROM_EMAIL }}
+          BREVO_FROM_NAME: ${{ secrets.BREVO_FROM_NAME }}
+        run: mvn clean verify
 
-
-        run: mvn clean compile test-compile
-      - name: Set up JDK 17 for SonarQube
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-      - name: SonarQube analysis
+
+      - name: SonarQube Analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
-          REDIS_HOST: ${{ secrets.REDIS_HOST }}
-          REDIS_PORT: ${{ secrets.REDIS_PORT }}
-          REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
-          JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          SENDGRID_FROM_EMAIL: ${{ secrets.SENDGRID_FROM_EMAIL }}
-          SENDGRID_FROM_NAME: ${{ secrets.SENDGRID_FROM_NAME }}
-
-        run: mvn clean verify sonar:sonar -Dsonar.projectKey=journal-project_journalapp -Dsonar.organization=journal-project -Dsonar.host.url=https://sonarcloud.io
+        run: mvn sonar:sonar \
+          -Dsonar.projectKey=journal-project_journalapp \
+          -Dsonar.organization=journal-project \
+          -Dsonar.host.url=https://sonarcloud.io

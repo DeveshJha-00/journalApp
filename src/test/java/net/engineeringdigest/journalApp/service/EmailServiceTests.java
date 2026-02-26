@@ -1,56 +1,56 @@
 package net.engineeringdigest.journalApp.service;
 
-import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.services.EmailService;
+import okhttp3.Call;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.mockito.Mockito;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.io.IOException;
+import java.lang.reflect.Field;
 
-@ActiveProfiles("dev")
-@Import(TestMailConfig.class)
-public class EmailServiceTests {
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-    @InjectMocks
+class EmailServiceTests {
+
     private EmailService emailService;
 
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() throws Exception {
+        emailService = new EmailService();
 
-        // Set test values for @Value fields (updated for SendGrid)
-        ReflectionTestUtils.setField(emailService, "sendGridApiKey", "SG.test-api-key");
-        ReflectionTestUtils.setField(emailService, "fromEmail", "test@example.com");
-        ReflectionTestUtils.setField(emailService, "fromName", "Test App");
+        // Inject fake Brevo config
+        setField(emailService, "brevoApiKey", "xkeysib-test-key");
+        setField(emailService, "fromEmail", "test@example.com");
+        setField(emailService, "fromName", "Test App");
+
+        // ---- Proper HTTP mocking without mocking final Response ----
+        OkHttpClient mockClient = Mockito.mock(OkHttpClient.class);
+        Call mockCall = Mockito.mock(Call.class);
+
+        when(mockClient.newCall(any())).thenReturn(mockCall);
+        when(mockCall.execute()).thenThrow(new IOException("Simulated HTTP failure"));
+
+        setField(emailService, "httpClient", mockClient);
+    }
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        Field field = target.getClass().getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
     }
 
     @Test
-    void testSendEmail() {
-        // Test plain text email
+    void sendEmail_shouldReturnFalse_whenHttpThrowsException() {
         boolean result = emailService.sendEmail(
                 "test@example.com",
                 "Test Subject",
-                "Test body content"
+                "Body"
         );
 
-        // In a mocked environment, this would return true
-        // In integration tests, this would make actual API calls
-    }
-
-    @Test
-    void testSendHtmlEmail() {
-        // Test HTML email
-        boolean result = emailService.sendHtmlEmail(
-                "test@example.com",
-                "Test HTML Subject",
-                "<h1>Test HTML Content</h1><p>This is a test email.</p>"
-        );
-
-        // Test HTML email functionality
+        assertFalse(result);
     }
 }
