@@ -30,3 +30,5 @@ class JournalAppApplicationTests {
 	void contextLoads() {
 	}
 }
+
+// FINAL PLSSSS WORK
