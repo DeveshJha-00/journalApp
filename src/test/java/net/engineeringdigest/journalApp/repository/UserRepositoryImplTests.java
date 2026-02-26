@@ -1,57 +1,53 @@
 package net.engineeringdigest.journalApp.repository;
 
-
-import net.engineeringdigest.journalApp.config.TestMailConfig;
 import net.engineeringdigest.journalApp.entity.User;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
-import org.springframework.context.annotation.Import;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.test.context.ActiveProfiles;
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@ActiveProfiles("dev")
-@Import(TestMailConfig.class)
-public class UserRepositoryImplTests {
+@ExtendWith(MockitoExtension.class)
+class UserRepositoryImplTests {
 
     @InjectMocks
-    private  UserRepositoryImpl userRepositoryImpl;
+    private UserRepositoryImpl userRepositoryImpl;
 
     @Mock
     private MongoTemplate mongoTemplate;
 
     @BeforeEach
-    void setUp(){
-        MockitoAnnotations.initMocks(this);
+    void setUp() {
+        // No manual init needed when using MockitoExtension
     }
 
-    @Disabled("Disabled for CI/CD - mocked test, no real DB call")
     @Test
-    public void testGetUsersForSA() {
+    void testGetUsersForSA() {
+
         User mockUser = User.builder()
                 .userName("admin")
                 .password("admin")
                 .email("admin@example.com")
-                .roles(new ArrayList<>())
+                .roles(List.of())
                 .sentimentAnalysis(true)
                 .build();
+
         when(mongoTemplate.find(any(Query.class), any(Class.class)))
                 .thenReturn(Arrays.asList(mockUser));
 
-        // act
         List<User> result = userRepositoryImpl.getUsersForSA();
 
-        // assert
-        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("admin", result.get(0).getUserName());
     }
-
 }

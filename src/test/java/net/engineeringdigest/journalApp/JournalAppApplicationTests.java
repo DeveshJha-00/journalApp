@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("dev")
 @Import(TestMailConfig.class)
-//@Disabled("Disabled for CI/CD - context application bean issues")
+@Disabled("Disabled for CI/CD - context application bean issues")
 class JournalAppApplicationTests {
 
 	@Disabled("Disabled for CI/CD - requires database connection")

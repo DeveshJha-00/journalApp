@@ -1,12 +1,12 @@
 server:
   port: ${PORT:8080}
 
-sendgrid:
+brevo:
   api:
-    key: ${SENDGRID_API_KEY}
+    key: ${BREVO_API_KEY}
   from:
-    email: ${SENDGRID_FROM_EMAIL}
-    name: ${SENDGRID_FROM_NAME:JournalApp}
+    email: ${BREVO_FROM_EMAIL}
+    name: ${BREVO_FROM_NAME:JournalApp}
 
 spring:
   data:
@@ -28,7 +28,7 @@ jwt:
 gemini:
   api:
     key: ${GEMINI_API_KEY}
-    model: ${GEMINI_MODEL:gemini-1.5-flash}
+    model: ${GEMINI_MODEL:gemini-2.5-flash}
     base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
     max-tokens: ${GEMINI_MAX_TOKENS:8192}
     temperature: ${GEMINI_TEMPERATURE:0.3}
@@ -41,6 +41,6 @@ report:
   max:
     entries: ${MAX_ENTRIES_PER_REPORT:50}
   min:
-    entries: ${MIN_ENTRIES_FOR_REPORT:3}
+    entries: ${MIN_ENTRIES_FOR_REPORT:2}
   email:
     subject: ${REPORT_EMAIL_SUBJECT:Your Bi-weekly Mental Health Insights}

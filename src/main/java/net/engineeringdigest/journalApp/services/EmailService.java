@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -19,16 +16,16 @@ public class EmailService {
     private final OkHttpClient httpClient = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${sendgrid.api.key}")
-    private String sendGridApiKey;
+    @Value("${brevo.api.key}")
+    private String brevoApiKey;
 
-    @Value("${sendgrid.from.email}")
+    @Value("${brevo.from.email}")
     private String fromEmail;
 
-    @Value("${sendgrid.from.name:JournalApp}")
+    @Value("${brevo.from.name:JournalApp}")
     private String fromName;
 
-    private static final String SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send";
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
 
     /**
      * Send a plain text email
@@ -43,6 +40,7 @@ public class EmailService {
     public boolean sendHtmlEmail(String receiver, String subject, String htmlBody) {
         try {
             log.info("📧 Preparing HTML email for: {} with subject: '{}'", receiver, subject);
+
             boolean sent = sendEmailInternal(receiver, subject, htmlBody, true);
 
             if (sent) {
@@ -50,10 +48,12 @@ public class EmailService {
                 return true;
             } else {
                 log.error("❌ Failed to send HTML email to {}", receiver);
+
                 // Fallback to plain text
                 log.info("🔄 Attempting fallback plain text email to: {}", receiver);
-                String plainTextBody = htmlBody.replaceAll("<[^>]*>", ""); // strip HTML tags
+                String plainTextBody = htmlBody.replaceAll("<[^>]*>", "");
                 boolean fallbackSuccess = sendEmail(receiver, subject, plainTextBody);
+
                 if (fallbackSuccess) {
                     log.info("✅ Sent fallback plain text email to: {}", receiver);
                     return true;
@@ -62,6 +62,7 @@ public class EmailService {
                     return false;
                 }
             }
+
         } catch (Exception e) {
             log.error("❌ Unexpected error sending HTML email to {}: {}", receiver, e.getMessage(), e);
             return false;
@@ -70,16 +71,18 @@ public class EmailService {
 
     private boolean sendEmailInternal(String receiver, String subject, String content, boolean isHtml) {
         try {
-            // Log environment variables for debugging
-            log.info("🔍 Debug - API Key present: {}", sendGridApiKey != null && !sendGridApiKey.isEmpty());
+            log.info("Brevo Key: '{}'", brevoApiKey);
+            log.info("Key length: {}", brevoApiKey != null ? brevoApiKey.length() : 0);
+
+            // Debug logs
+            log.info("🔍 Debug - API Key present: {}", brevoApiKey != null && !brevoApiKey.isEmpty());
             log.info("🔍 Debug - From Email: '{}'", fromEmail);
             log.info("🔍 Debug - From Name: '{}'", fromName);
 
-            // Build SendGrid payload
-            Map<String, Object> payload = buildSendGridPayload(receiver, subject, content, isHtml);
+            // Build Brevo payload
+            Map<String, Object> payload = buildBrevoPayload(receiver, subject, content, isHtml);
             String jsonPayload = objectMapper.writeValueAsString(payload);
 
-            // Log the exact JSON payload for debugging
             log.info("🔍 Debug - JSON Payload: {}", jsonPayload);
 
             RequestBody body = RequestBody.create(
@@ -88,30 +91,33 @@ public class EmailService {
             );
 
             Request request = new Request.Builder()
-                    .url(SENDGRID_API_URL)
+                    .url(BREVO_API_URL)
                     .post(body)
-                    .addHeader("Authorization", "Bearer " + sendGridApiKey)
+                    .addHeader("api-key", brevoApiKey)
                     .addHeader("Content-Type", "application/json")
                     .build();
 
-            log.info("📤 Sending {} email to: {} via SendGrid API...", isHtml ? "HTML" : "plain text", receiver);
+            log.info("📤 Sending {} email to: {} via Brevo API...",
+                    isHtml ? "HTML" : "plain text", receiver);
 
             try (Response response = httpClient.newCall(request).execute()) {
-                String responseBody = response.body() != null ? response.body().string() : "null";
 
-                // Log detailed response information
+                String responseBody =
+                        response.body() != null ? response.body().string() : "null";
+
                 log.info("🔍 Debug - Response Status: {}", response.code());
                 log.info("🔍 Debug - Response Headers: {}", response.headers());
                 log.info("🔍 Debug - Response Body: {}", responseBody);
 
                 if (response.isSuccessful()) {
-                    log.info("✅ SendGrid API responded with success for {}", receiver);
+                    log.info("✅ Brevo API responded with success for {}", receiver);
                     return true;
                 } else {
-                    log.error("❌ SendGrid API failed with status {}: {}", response.code(), responseBody);
+                    log.error("❌ Brevo API failed with status {}: {}", response.code(), responseBody);
                     return false;
                 }
             }
+
         } catch (IOException e) {
             log.error("❌ IO error sending email to {}: {}", receiver, e.getMessage(), e);
             return false;
@@ -121,35 +127,30 @@ public class EmailService {
         }
     }
 
-    private Map<String, Object> buildSendGridPayload(String receiver, String subject, String content, boolean isHtml) {
+    private Map<String, Object> buildBrevoPayload(String receiver, String subject, String content, boolean isHtml) {
+
         Map<String, Object> payload = new HashMap<>();
 
-        // From address
-        Map<String, String> from = new HashMap<>();
-        from.put("email", fromEmail);
-        from.put("name", fromName);
-        payload.put("from", from);
+        // Sender
+        Map<String, String> sender = new HashMap<>();
+        sender.put("email", fromEmail);
+        sender.put("name", fromName);
+        payload.put("sender", sender);
 
-        // Personalizations (recipients and subject)
-        Map<String, Object> personalization = new HashMap<>();
-
+        // Recipient list
         Map<String, String> to = new HashMap<>();
         to.put("email", receiver);
-        personalization.put("to", Arrays.asList(to));
-        personalization.put("subject", subject);
+        payload.put("to", Collections.singletonList(to));
 
-        payload.put("personalizations", Arrays.asList(personalization));
+        // Subject
+        payload.put("subject", subject);
 
         // Content
-        Map<String, String> contentMap = new HashMap<>();
         if (isHtml) {
-            contentMap.put("type", "text/html");
-            contentMap.put("value", content);
+            payload.put("htmlContent", content);
         } else {
-            contentMap.put("type", "text/plain");
-            contentMap.put("value", content);
+            payload.put("textContent", content);
         }
-        payload.put("content", Arrays.asList(contentMap));
 
         return payload;
     }
