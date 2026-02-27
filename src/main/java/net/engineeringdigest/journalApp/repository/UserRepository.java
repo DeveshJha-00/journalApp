@@ -8,4 +8,5 @@ public interface UserRepository extends MongoRepository<User, ObjectId> {
     //repo extending MongoRepo to provide dbms functionalities
     User findByuserName(String userName);
     void deleteByUserName(String userName);
+    User findByEmail(String email);
 }

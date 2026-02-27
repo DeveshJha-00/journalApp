@@ -1,7 +1,9 @@
 package net.engineeringdigest.journalApp.dto;
 
+import net.engineeringdigest.journalApp.entity.BiweeklyReport;
 import net.engineeringdigest.journalApp.entity.Collection;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
+import net.engineeringdigest.journalApp.services.AnalyticsService;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
 
@@ -82,5 +84,25 @@ public class DTOMapper {
         } else if (dto.getCollectionId() != null && dto.getCollectionId().trim().isEmpty()) {
             entry.setCollectionId(null);
         }
+    }
+
+    // BiweeklyReport mappings
+    public BiweeklyReportResponseDTO toResponseDTO(BiweeklyReport report) {
+        Double avgMood = null;
+        if (report.getAvgSentimentScore() != null) {
+            avgMood = AnalyticsService.sentimentToMood(report.getAvgSentimentScore());
+        }
+        return new BiweeklyReportResponseDTO(
+            report.getId() != null ? report.getId().toHexString() : null,
+            report.getReportContent(),
+            report.getPeriodStart(),
+            report.getPeriodEnd(),
+            report.getAvgSentimentScore(),
+            avgMood,
+            report.getTotalEntries(),
+            report.getTopEmotions(),
+            report.getTopKeywords(),
+            report.getGeneratedAt()
+        );
     }
 }

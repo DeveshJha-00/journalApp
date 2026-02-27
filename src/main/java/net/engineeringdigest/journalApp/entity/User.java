@@ -27,8 +27,9 @@ public class User {
     private String email;
     private boolean sentimentAnalysis;
 
-    @NonNull
-    private String password;
+    private String password; // Nullable for OAuth users
+
+    private String authProvider; // "LOCAL" or "GOOGLE", defaults to "LOCAL"
 
     @DBRef
     private List<JournalEntry> journalEntryList = new ArrayList<>();

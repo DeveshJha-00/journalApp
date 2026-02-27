@@ -35,16 +35,17 @@ public class UserService {
 
     public void saveNewUser(User user){
         try{
+            if (user.getPassword() == null || user.getPassword().isBlank()) {
+                throw new IllegalArgumentException("Password is required for local signup");
+            }
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setRoles(Arrays.asList("USER"));
+            if (user.getAuthProvider() == null) {
+                user.setAuthProvider("LOCAL");
+            }
             userRepository.save(user);
         }catch (Exception e){
             log.error("Error saving new user: {}", e.getMessage());
-//            log.warn("User with username {} already exists", user.getUserName());
-//            log.info("User with username {} already exists, please choose a different username", user.getUserName());
-//            log.debug("User with username {} already exists, please choose a different username", user.getUserName());
-//            log.trace("User with username {} already exists, please choose a different username", user.getUserName());
-//            throw new RuntimeException("Error saving new user: " + e.getMessage());
         }
 
     }

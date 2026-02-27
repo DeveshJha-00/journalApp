@@ -1,8 +1,10 @@
 package net.engineeringdigest.journalApp.services;
 
 import lombok.extern.slf4j.Slf4j;
+import net.engineeringdigest.journalApp.entity.BiweeklyReport;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
+import net.engineeringdigest.journalApp.repository.BiweeklyReportRepository;
 import net.engineeringdigest.journalApp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,10 +31,13 @@ public class BiweeklyReportService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private BiweeklyReportRepository biweeklyReportRepository;
+
     @Value("${report.frequency.days:14}")
     private int reportFrequencyDays;
 
-    @Value("${report.min.entries:1}")
+    @Value("${report.min.entries:2}")
     private int minEntriesForReport;
 
     @Value("${report.max.entries:50}")
@@ -120,12 +125,12 @@ public class BiweeklyReportService {
                     log.info("📋 Using cached report content for user: {} (no new entries)", user.getUserName());
                 } else {
                     log.warn("⚠️ Cache indicated recent report but content not found, generating fresh report for user: {}", user.getUserName());
-                    reportContent = generateFreshReport(recentEntries, user.getUserName(), reportCacheKey);
+                    reportContent = generateFreshReport(recentEntries, user, reportCacheKey);
                 }
             } else {
                 // New entries exist or no cached report - generate fresh report
                 log.info("🆕 Generating fresh report for user: {} ({} new entries)", user.getUserName(), newEntries.size());
-                reportContent = generateFreshReport(recentEntries, user.getUserName(), reportCacheKey);
+                reportContent = generateFreshReport(recentEntries, user, reportCacheKey);
             }
 
             // Validate report content was obtained
@@ -243,9 +248,9 @@ public class BiweeklyReportService {
     }
 
     /**
-     * Generate fresh report content using Gemini API and cache it
+     * Generate fresh report content using Gemini API, persist to MongoDB, and cache it
      */
-    private String generateFreshReport(List<JournalEntry> recentEntries, String userName, String reportCacheKey) {
+    private String generateFreshReport(List<JournalEntry> recentEntries, User user, String reportCacheKey) {
         try {
             // Limit entries to avoid token limits
             List<JournalEntry> entriesToAnalyze = recentEntries.stream()
@@ -258,17 +263,86 @@ public class BiweeklyReportService {
 
             // Generate report using Gemini
             log.info("🤖 Calling Gemini API for fresh report generation");
-            String reportContent = geminiService.generateBiweeklyReport(entriesData, userName);
+            String reportContent = geminiService.generateBiweeklyReport(entriesData, user.getUserName());
             log.info("✅ Fresh report generated (length: {} chars)", reportContent.length());
 
             // Cache the new report with timestamp
             cacheReport(reportCacheKey, reportContent);
             cacheReportTimestamp(reportCacheKey);
 
+            // Persist report to MongoDB
+            persistReport(user, entriesToAnalyze, reportContent);
+
             return reportContent;
         } catch (Exception e) {
             log.error("❌ Failed to generate fresh report: {}", e.getMessage());
             throw new RuntimeException("Failed to generate fresh report", e);
+        }
+    }
+
+    /**
+     * Persist a generated report to MongoDB for dashboard access
+     */
+    private void persistReport(User user, List<JournalEntry> entries, String reportContent) {
+        try {
+            // Compute summary metrics from entries
+            double avgSentiment = entries.stream()
+                    .filter(e -> e.getSentimentScore() != null)
+                    .mapToDouble(JournalEntry::getSentimentScore)
+                    .average()
+                    .orElse(0.0);
+
+            List<String> topEmotions = entries.stream()
+                    .filter(e -> e.getEmotions() != null)
+                    .flatMap(e -> e.getEmotions().stream())
+                    .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
+                    .entrySet().stream()
+                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                    .limit(5)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            List<String> topKeywords = entries.stream()
+                    .filter(e -> e.getKeywords() != null)
+                    .flatMap(e -> e.getKeywords().stream())
+                    .collect(Collectors.groupingBy(s -> s.toLowerCase(), Collectors.counting()))
+                    .entrySet().stream()
+                    .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                    .limit(5)
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
+
+            // Determine period boundaries from entries
+            LocalDateTime periodStart = entries.stream()
+                    .map(JournalEntry::getDate)
+                    .filter(Objects::nonNull)
+                    .min(LocalDateTime::compareTo)
+                    .orElse(LocalDateTime.now().minusDays(reportFrequencyDays));
+
+            LocalDateTime periodEnd = entries.stream()
+                    .map(JournalEntry::getDate)
+                    .filter(Objects::nonNull)
+                    .max(LocalDateTime::compareTo)
+                    .orElse(LocalDateTime.now());
+
+            BiweeklyReport report = BiweeklyReport.builder()
+                    .userId(user.getId())
+                    .reportContent(reportContent)
+                    .periodStart(periodStart)
+                    .periodEnd(periodEnd)
+                    .avgSentimentScore(avgSentiment)
+                    .totalEntries(entries.size())
+                    .topEmotions(topEmotions)
+                    .topKeywords(topKeywords)
+                    .generatedAt(LocalDateTime.now())
+                    .build();
+
+            biweeklyReportRepository.save(report);
+            log.info("💾 Persisted bi-weekly report to MongoDB for user: {} (entries: {}, avgSentiment: {})",
+                     user.getUserName(), entries.size(), String.format("%.2f", avgSentiment));
+        } catch (Exception e) {
+            log.error("⚠️ Failed to persist report to MongoDB for user {}: {}", user.getUserName(), e.getMessage());
+            // Don't fail the overall report generation if persistence fails
         }
     }
 

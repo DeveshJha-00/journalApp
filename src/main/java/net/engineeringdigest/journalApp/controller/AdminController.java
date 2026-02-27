@@ -125,12 +125,9 @@ public class AdminController {
         envStatus.put("REDIS_PORT", environment.getProperty("spring.redis.port") != null ? "✅ Set" : "❌ Missing");
         envStatus.put("JWT_SECRET", environment.getProperty("jwt.secret") != null ? "✅ Set" : "❌ Missing");
         envStatus.put("GEMINI_API_KEY", environment.getProperty("gemini.api.key") != null ? "✅ Set" : "❌ Missing");
-//        envStatus.put("FROM_MAIL_MAILID", environment.getProperty("spring.mail.username") != null ? "✅ Set" : "❌ Missing");
-//        envStatus.put("RESEND_API_KEY", environment.getProperty("resend.api.key") != null ? "✅ Set" : "❌ Missing");
-//        envStatus.put("FROM_RESEND_EMAIL", environment.getProperty("resend.from.email") != null ? "✅ Set" : "❌ Missing");
-        envStatus.put("SENDGRID_API_KEY", environment.getProperty("sendgrid.api.key") != null ? "✅ Set" : "❌ Missing");
-        envStatus.put("SENDGRID_FROM_EMAIL", environment.getProperty("sendgrid.from.email") != null ? "✅ Set" : "❌ Missing");
-        envStatus.put("SENDGRID_FROM_NAME", environment.getProperty("sendgrid.from.name") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("BREVO_API_KEY", environment.getProperty("brevo.api.key") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("BREVO_FROM_EMAIL", environment.getProperty("brevo.from.email") != null ? "✅ Set" : "❌ Missing");
+        envStatus.put("BREVO_FROM_NAME", environment.getProperty("brevo.from.name") != null ? "✅ Set" : "❌ Missing");
 
         // Add active profile info
         String[] activeProfiles = environment.getActiveProfiles();
