@@ -48,7 +48,7 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
         try {
             // Look up user by email
-            User user = userRepository.findByEmail(email);
+            User user = userRepository.findFirstByEmail(email);
 
             if (user == null) {
                 // Create new user for Google OAuth

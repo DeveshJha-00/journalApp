@@ -32,3 +32,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Root node_modules junction (points to frontend/node_modules)
+/node_modules

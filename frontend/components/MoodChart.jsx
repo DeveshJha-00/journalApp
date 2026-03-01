@@ -10,31 +10,50 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, eachDayOfInterval, subDays } from "date-fns";
 
 function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
+
+  const moodPayload = payload.find((p) => p.dataKey === "avgMood");
+  const entriesPayload = payload.find((p) => p.dataKey === "entries");
 
   return (
     <div className="bg-white border rounded-lg shadow-md p-3">
       <p className="font-medium text-sm mb-1">
         {format(parseISO(label), "MMM d, yyyy")}
       </p>
-      <p className="text-orange-600 text-xs">
-        Average Mood: {payload[0]?.value?.toFixed(1)}
-      </p>
+      {moodPayload?.value != null && (
+        <p className="text-orange-600 text-xs">
+          Average Mood: {moodPayload.value.toFixed(1)}
+        </p>
+      )}
       <p className="text-blue-600 text-xs">
-        Entries: {payload[1]?.value}
+        Entries: {entriesPayload?.value ?? 0}
       </p>
     </div>
   );
 }
 
-export default function MoodChart({ data }) {
+export default function MoodChart({ data, period = "7d" }) {
+  // Fill in all dates in the selected period so lines always render
+  const days = parseInt(period);
+  const endDate = new Date();
+  const startDate = subDays(endDate, days - 1);
+
+  const allDates = eachDayOfInterval({ start: startDate, end: endDate });
+  const dataMap = new Map(data.map((d) => [d.date, d]));
+
+  const filledData = allDates.map((date) => {
+    const key = format(date, "yyyy-MM-dd");
+    const existing = dataMap.get(key);
+    return existing || { date: key, avgMood: null, entries: 0 };
+  });
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart
-        data={data}
+        data={filledData}
         margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
@@ -67,7 +86,8 @@ export default function MoodChart({ data }) {
           dataKey="avgMood"
           stroke="#f97316"
           strokeWidth={2}
-          dot={{ r: 3 }}
+          dot={{ r: 4 }}
+          connectNulls
           name="Average Mood"
         />
 

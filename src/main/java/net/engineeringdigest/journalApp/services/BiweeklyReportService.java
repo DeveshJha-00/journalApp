@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
+
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,6 +35,12 @@ public class BiweeklyReportService {
 
     @Autowired
     private BiweeklyReportRepository biweeklyReportRepository;
+
+    @Autowired
+    private SentimentAnalysisService sentimentAnalysisService;
+
+    @Autowired
+    private JournalEntryRepository journalEntryRepository;
 
     @Value("${report.frequency.days:14}")
     private int reportFrequencyDays;
@@ -356,11 +364,50 @@ public class BiweeklyReportService {
 
     private List<JournalEntry> getRecentEntriesWithSentiment(User user, int days) {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(days);
-        
-        return user.getJournalEntryList().stream()
+
+        List<JournalEntry> allEntries = user.getJournalEntryList();
+        log.info("🔍 User {} has {} total entries in journalEntryList (cutoff: {})",
+                 user.getUserName(), allEntries.size(), cutoffDate);
+
+        List<JournalEntry> afterDateFilter = allEntries.stream()
                 .filter(entry -> entry.getDate() != null && entry.getDate().isAfter(cutoffDate))
-                .filter(entry -> entry.getSentimentAnalyzedAt() != null) // Only entries with sentiment data
-                .sorted((e1, e2) -> e2.getDate().compareTo(e1.getDate())) // Most recent first
+                .collect(Collectors.toList());
+        log.info("🔍 After date filter (last {} days): {} entries", days, afterDateFilter.size());
+
+        List<JournalEntry> afterSentimentFilter = afterDateFilter.stream()
+                .filter(entry -> entry.getSentimentAnalyzedAt() != null)
+                .collect(Collectors.toList());
+        log.info("🔍 After sentimentAnalyzedAt filter: {} entries", afterSentimentFilter.size());
+
+        if (afterDateFilter.size() > 0 && afterSentimentFilter.isEmpty()) {
+            log.warn("⚠️ Entries exist but lack sentimentAnalyzedAt — falling back to entries with sentimentScore");
+            afterSentimentFilter = afterDateFilter.stream()
+                    .filter(entry -> entry.getSentimentScore() != null)
+                    .collect(Collectors.toList());
+            log.info("🔍 After sentimentScore fallback filter: {} entries", afterSentimentFilter.size());
+        }
+
+        // If entries still lack sentiment data, analyze them on the fly
+        if (afterDateFilter.size() > 0 && afterSentimentFilter.isEmpty()) {
+            log.info("🔄 Running on-the-fly sentiment analysis for {} entries", afterDateFilter.size());
+            for (JournalEntry entry : afterDateFilter) {
+                try {
+                    sentimentAnalysisService.analyzeSentiment(entry);
+                    journalEntryRepository.save(entry);
+                    log.debug("✅ Analyzed sentiment for entry: {}", entry.getId());
+                } catch (Exception e) {
+                    log.warn("⚠️ Failed sentiment analysis for entry {}: {}", entry.getId(), e.getMessage());
+                }
+            }
+            // Re-filter after analysis
+            afterSentimentFilter = afterDateFilter.stream()
+                    .filter(entry -> entry.getSentimentScore() != null || entry.getSentimentAnalyzedAt() != null)
+                    .collect(Collectors.toList());
+            log.info("🔍 After on-the-fly analysis: {} entries with sentiment data", afterSentimentFilter.size());
+        }
+
+        return afterSentimentFilter.stream()
+                .sorted((e1, e2) -> e2.getDate().compareTo(e1.getDate()))
                 .collect(Collectors.toList());
     }
 

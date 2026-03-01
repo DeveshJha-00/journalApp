@@ -9,6 +9,7 @@ import net.engineeringdigest.journalApp.repository.BiweeklyReportRepository;
 import net.engineeringdigest.journalApp.repository.UserRepository;
 import net.engineeringdigest.journalApp.services.AnalyticsService;
 import net.engineeringdigest.journalApp.services.UserService;
+import net.engineeringdigest.journalApp.utils.JwtUtil;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -38,6 +41,24 @@ public class UserController {
     @Autowired
     private DTOMapper dtoMapper;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.findByUsername(authentication.getName());
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("userName", user.getUserName());
+        response.put("email", user.getEmail());
+        response.put("sentimentAnalysis", user.isSentimentAnalysis());
+        response.put("authProvider", user.getAuthProvider());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 
     @PutMapping() 
     public ResponseEntity<?> updateUser(@RequestBody User user){
@@ -48,6 +69,51 @@ public class UserController {
         userInDB.setPassword(user.getPassword());
         userService.saveNewUser(userInDB);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @PutMapping("/username")
+    public ResponseEntity<?> updateUsername(@RequestBody Map<String, String> body) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentName = authentication.getName();
+        User user = userService.findByUsername(currentName);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        String newUsername = body.get("userName");
+        if (newUsername == null || newUsername.trim().isEmpty()) {
+            return new ResponseEntity<>("'userName' is required", HttpStatus.BAD_REQUEST);
+        }
+        // Check if username is already taken
+        User existing = userService.findByUsername(newUsername.trim());
+        if (existing != null && !existing.getId().equals(user.getId())) {
+            return new ResponseEntity<>("Username already taken", HttpStatus.CONFLICT);
+        }
+        user.setUserName(newUsername.trim());
+        userService.saveUser(user);
+        // Generate new JWT with updated username
+        String newJwt = jwtUtil.generateToken(user.getUserName());
+        Map<String, Object> response = new HashMap<>();
+        response.put("userName", user.getUserName());
+        response.put("token", newJwt);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    @PutMapping("/sentiment-analysis")
+    public ResponseEntity<?> toggleSentimentAnalysis(@RequestBody Map<String, Boolean> body) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = userService.findByUsername(authentication.getName());
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Boolean enabled = body.get("enabled");
+        if (enabled == null) {
+            return new ResponseEntity<>("'enabled' field is required", HttpStatus.BAD_REQUEST);
+        }
+        user.setSentimentAnalysis(enabled);
+        userService.saveUser(user);
+        Map<String, Object> response = new HashMap<>();
+        response.put("sentimentAnalysis", user.isSentimentAnalysis());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @DeleteMapping()

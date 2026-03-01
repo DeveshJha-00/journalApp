@@ -42,8 +42,8 @@ api.interceptors.response.use(
 export const authAPI = {
   login: (userName, password) =>
     api.post("/public/login", { userName, password }),
-  signup: (userName, password, email) =>
-    api.post("/public/signup", { userName, password, email }),
+  signup: (userName, password, email, sentimentAnalysis = false) =>
+    api.post("/public/signup", { userName, password, email, sentimentAnalysis }),
   googleOAuthUrl: () => `${API_BASE_URL}/oauth2/authorization/google`,
 };
 
@@ -72,8 +72,12 @@ export const collectionAPI = {
 
 // ==================== User ====================
 export const userAPI = {
+  getMe: () => api.get("/user/me"),
   update: (data) => api.put("/user", data),
+  updateUsername: (userName) => api.put("/user/username", { userName }),
   delete: () => api.delete("/user"),
+  toggleSentimentAnalysis: (enabled) =>
+    api.put("/user/sentiment-analysis", { enabled }),
   getReports: () => api.get("/user/reports"),
   getReportById: (id) => api.get(`/user/reports/${id}`),
   getAnalytics: (range = "15d") =>

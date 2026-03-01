@@ -15,6 +15,7 @@ export default function AuthPage() {
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [sentimentAnalysis, setSentimentAnalysis] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function AuthPage() {
           setLoading(false);
           return;
         }
-        await authAPI.signup(userName, password, email);
+        await authAPI.signup(userName, password, email, sentimentAnalysis);
         toast.success("Account created! Logging you in...");
         // Auto-login after signup
         const res = await authAPI.login(userName, password);
@@ -138,6 +139,22 @@ export default function AuthPage() {
               required
               className="rounded-xl"
             />
+            {!isLogin && (
+              <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={sentimentAnalysis}
+                  onChange={(e) => setSentimentAnalysis(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded accent-orange-600"
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Enable Sentiment Analysis</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Receive biweekly mental health reports based on your journal entries. You can change this later.
+                  </p>
+                </div>
+              </label>
+            )}
             <Button
               type="submit"
               disabled={loading}

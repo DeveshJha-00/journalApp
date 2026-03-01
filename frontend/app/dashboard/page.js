@@ -4,12 +4,14 @@ import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import {useState } from "react";
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { userAPI, journalAPI } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Toggle } from "@/components/ui/toggle";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +27,7 @@ import {
   Smile,
   FileText,
   ArrowRight,
+  Pencil,
 } from "lucide-react";
 import MoodChart from "@/components/MoodChart";
 import {
@@ -35,18 +38,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Link from "next/link";
+import { toast } from "sonner";
 
 function getMoodMessage(avgMood) {
   if (avgMood >= 8) return { text: "You've been feeling great!", color: "text-green-600" };
   if (avgMood >= 6) return { text: "Your mood is steady. Keep it up!", color: "text-blue-600" };
   if (avgMood >= 4) return { text: "Your mood has dipped slightly. Stay mindful.", color: "text-amber-600" };
-  return { text: "It's been a tough stretch. Be gentle with yourself.", color: "text-orange-600" };
+  if (avgMood > 0) return { text: "It's been a tough stretch. Be gentle with yourself.", color: "text-orange-600" };
+  return {text: "Start journaling to get analysis!", color: "text-orange-600" };
 }
 
 export default function DashboardPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, login: authLogin } = useAuth();
   const router = useRouter();
   const [period, setPeriod] = useState("7d");
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.push("/auth");
@@ -64,6 +71,46 @@ export default function DashboardPage() {
     enabled: isAuthenticated,
   });
 
+  const { data: currentUser, isLoading: userLoading } = useQuery({
+    queryKey: ["currentUser"],
+    queryFn: () => userAPI.getMe().then((r) => r.data),
+    enabled: isAuthenticated,
+  });
+
+  const queryClient = useQueryClient();
+
+  const sentimentMutation = useMutation({
+    mutationFn: (enabled) => userAPI.toggleSentimentAnalysis(enabled),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      toast.success(
+        res.data.sentimentAnalysis
+          ? "Sentiment analysis enabled — you'll receive biweekly reports."
+          : "Sentiment analysis disabled — biweekly reports paused."
+      );
+    },
+    onError: () => {
+      toast.error("Failed to update sentiment analysis preference.");
+    },
+  });
+
+  const usernameMutation = useMutation({
+    mutationFn: (userName) => userAPI.updateUsername(userName),
+    onSuccess: (res) => {
+      // Update JWT since username changed
+      if (res.data.token) {
+        authLogin(res.data.token);
+      }
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
+      setEditingUsername(false);
+      toast.success(`Username updated to "${res.data.userName}"`);
+    },
+    onError: (err) => {
+      const msg = err.response?.data;
+      toast.error(typeof msg === "string" ? msg : "Failed to update username.");
+    },
+  });
+
   if (authLoading || !isAuthenticated) return null;
 
   const mood = analytics ? getMoodMessage(analytics.avgMood) : null;
@@ -72,7 +119,67 @@ export default function DashboardPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold gradient-title">Dashboard</h1>
+        <div>
+          <h1 className="text-4xl font-bold gradient-title">Dashboard</h1>
+          {!userLoading && currentUser && (
+            <div className="flex items-center gap-2 mt-1">
+              {editingUsername ? (
+                <form
+                  className="flex items-center gap-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (newUsername.trim() && newUsername.trim() !== currentUser.userName) {
+                      usernameMutation.mutate(newUsername.trim());
+                    } else {
+                      setEditingUsername(false);
+                    }
+                  }}
+                >
+                  <Input
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    className="h-7 w-48 text-sm rounded-lg"
+                    autoFocus
+                    disabled={usernameMutation.isPending}
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="h-7 px-3 text-xs bg-orange-600 hover:bg-orange-700"
+                    disabled={usernameMutation.isPending}
+                  >
+                    {usernameMutation.isPending ? "..." : "Save"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setEditingUsername(false)}
+                  >
+                    Cancel
+                  </Button>
+                </form>
+              ) : (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-gray-500">
+                    Welcome, <span className="font-medium text-gray-700">{currentUser.userName}</span>
+                  </span>
+                  <button
+                    onClick={() => {
+                      setNewUsername(currentUser.userName);
+                      setEditingUsername(true);
+                    }}
+                    className="text-gray-400 hover:text-orange-600 transition-colors cursor-pointer"
+                    title="Edit username"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-[140px]">
@@ -173,7 +280,7 @@ export default function DashboardPage() {
               {analyticsLoading ? (
                 <Skeleton className="h-64 w-full rounded-md" />
               ) : analytics?.moodTimeline?.length > 0 ? (
-                <MoodChart data={analytics.moodTimeline} />
+                <MoodChart data={analytics.moodTimeline} period={period} />
               ) : (
                 <div className="h-64 flex items-center justify-center text-gray-400">
                   No mood data yet. Start journaling to see trends!
@@ -188,10 +295,34 @@ export default function DashboardPage() {
         <div className="space-y-6 h-full">
           <Card className="shadow-md bg-white/80 backdrop-blur-sm h-full">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <FileText className="h-5 w-5 text-orange-600" />
-                Biweekly Reports
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-orange-600" />
+                  Biweekly Reports
+                </CardTitle>
+                {userLoading ? (
+                  <Skeleton className="h-8 w-14 rounded-md" />
+                ) : (
+                  <Toggle
+                    pressed={currentUser?.sentimentAnalysis ?? false}
+                    onPressedChange={(pressed) => sentimentMutation.mutate(pressed)}
+                    disabled={sentimentMutation.isPending}
+                    aria-label="Toggle sentiment analysis"
+                    className={`px-6 py-2 font-medium rounded-full border transition-colors ${
+                      currentUser?.sentimentAnalysis
+                        ? "bg-orange-100 text-orange-700 border-orange-200 data-[state=on]:bg-orange-100 data-[state=on]:text-orange-700"
+                        : "bg-gray-100 text-gray-500 border-gray-200"
+                    }`}
+                  >
+                    {currentUser?.sentimentAnalysis ? "On" : "Off"}
+                  </Toggle>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {currentUser?.sentimentAnalysis
+                  ? "Your journal entries are being analyzed biweekly."
+                  : "Turn on to receive biweekly mental health reports."}
+              </p>
             </CardHeader>
             <CardContent>
               {reportsLoading ? (
