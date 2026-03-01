@@ -97,7 +97,8 @@ public class JournalEntryController {
             JournalEntry entry = dtoMapper.toEntity(entryRequestDTO);
             log.info("🔄 Mapped DTO to entity, calling saveEntry service");
 
-            journalEntryService.saveEntry(entry, userName);
+            // journalEntryService.saveEntry(entry, userName);
+            journalEntryService.createEntry(entry, userName);
             log.info("✅ Journal entry saved successfully with ID: {}", entry.getId());
 
             String collectionName = null;
@@ -145,7 +146,8 @@ public class JournalEntryController {
             if (journalEntry.isPresent()){
                 JournalEntry entry = journalEntry.get();
                 dtoMapper.updateEntityFromDTO(entry, entryRequestDTO);
-                journalEntryService.saveEntry(entry, userName);
+                // journalEntryService.saveEntry(entry, userName);
+                journalEntryService.updateEntry(entry, userName);
 
                 String collectionName = null;
                 if (entry.getCollectionId() != null) {

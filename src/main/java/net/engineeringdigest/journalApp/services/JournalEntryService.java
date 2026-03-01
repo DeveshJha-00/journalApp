@@ -57,13 +57,41 @@ public class JournalEntryService {
     }
 
     // @Transactional - Disabled for Railway MongoDB (single instance, no replica set)
-    public void saveEntry(JournalEntry entry, String userName){
+    public void createEntry(JournalEntry entry, String userName){
         User user = userService.findByUsername(userName);
         entry.setDate(LocalDateTime.now());
         JournalEntry saved = journalEntryRepository.save(entry);
         user.getJournalEntryList().add(saved);
         userService.saveUser(user);
 
+        analyzeAndCache(saved, user);
+    }
+
+    public void updateEntry(JournalEntry entry, String userName){
+        User user = userService.findByUsername(userName);
+        entry.setDate(LocalDateTime.now());
+        JournalEntry saved = journalEntryRepository.save(entry);
+        // Do NOT add to user's list — it's already there
+
+        // Deduplicate user's journal list (fixes previously corrupted data)
+        List<JournalEntry> deduped = user.getJournalEntryList().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getId().toHexString(),
+                        e -> e,
+                        (existing, duplicate) -> existing
+                ))
+                .values().stream().collect(Collectors.toList());
+
+        if (deduped.size() != user.getJournalEntryList().size()) {
+            user.setJournalEntryList(new java.util.ArrayList<>(deduped));
+            userService.saveUser(user);
+            log.info("Deduplicated journal entry list for user: {}", userName);
+        }
+
+        analyzeAndCache(saved, user);
+    }
+
+    private void analyzeAndCache(JournalEntry saved, User user) {
         // Perform sentiment analysis if user has opted in
         if (user.isSentimentAnalysis()) {
             try {
