@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-4xl font-bold gradient-title">Dashboard</h1>
+          <h1 className="text-4xl font-bold gradient-title text-orange-600">Dashboard</h1>
           {!userLoading && currentUser && (
             <div className="flex items-center gap-2 mt-1">
               {editingUsername ? (
@@ -162,7 +162,7 @@ export default function DashboardPage() {
                 </form>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm text-gray-500">
+                  <span className="text-lg text-gray-500">
                     Welcome, <span className="font-medium text-gray-700">{currentUser.userName}</span>
                   </span>
                   <button
@@ -173,7 +173,7 @@ export default function DashboardPage() {
                     className="text-gray-400 hover:text-orange-600 transition-colors cursor-pointer"
                     title="Edit username"
                   >
-                    <Pencil className="h-3.5 w-3.5" />
+                    <Pencil className="h-4 w-4" />
                   </button>
                 </div>
               )}
@@ -181,7 +181,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <Select value={period} onValueChange={setPeriod}>
+        <Select value={period} onValueChange={setPeriod} className="bg-transparent">
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
           {/* Stats Row */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Total Entries */}
-            <Card>
+            <Card className="bg-transparent shadow-md">
               <CardContent className="pt-2 pb-2">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-orange-600" />
@@ -225,7 +225,7 @@ export default function DashboardPage() {
             </Card>         
 
             {/* Average Mood */}
-            <Card>
+            <Card className="bg-transparent shadow-md">
             <CardContent className="pt-2 pb-2">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-600" />
@@ -250,7 +250,7 @@ export default function DashboardPage() {
           </Card>
 
             {/* Mood Summary */}
-            <Card>
+            <Card className=" bg-transparent shadow-md">
             <CardContent className="pt-2 pb-2">
               <div className="flex items-center gap-2">
                 <Smile className="h-4 w-4 text-green-600" />
@@ -272,7 +272,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Mood Timeline Chart */}
-          <Card className="shadow-md bg-white/80 backdrop-blur-sm">
+          <Card className="bg-transparent shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg font-semibold">Mood Timeline</CardTitle>
             </CardHeader>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
 
         {/* ===== Sidebar — Reports (1/3) ===== */}
         <div className="space-y-6 h-full">
-          <Card className="shadow-md bg-white/80 backdrop-blur-sm h-full">
+          <Card className="shadow-md bg-transparent h-full">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -364,7 +364,7 @@ function ReportCard({ report }) {
     <Dialog>
 
       <DialogTrigger asChild>
-        <button className="cursor-pointer w-full text-left p-3 rounded-xl border border-orange-100 hover:bg-orange-50/50 transition-colors">
+        <button className="cursor-pointer w-full text-left p-3 rounded-xl border-2 shadow md hover:bg-orange-50/50 transition-colors">
           <div className="flex items-center justify-between mb-1">
             <span className="font-medium text-gray-900">{date}</span>
             {report.avgMood && (

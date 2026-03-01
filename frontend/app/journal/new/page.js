@@ -15,8 +15,15 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@/components/ui/dialog";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { Save, Send, Plus } from "lucide-react";
+import { Save, Send, Plus, ChevronDown } from "lucide-react";
 import TipTapEditor from "@/components/TipTapEditor";
 
 const DRAFT_KEY = "journal-draft";
@@ -101,8 +108,8 @@ export default function NewJournalPage() {
   if (authLoading || !isAuthenticated) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">New Entry</h1>
+    <div className="container mx-auto px-4 py-8 max-w-8xl">
+      <h1 className="text-4xl font-bold text-orange-600 mb-6">What's on your mind?</h1>
 
       <div className="space-y-4">
         {/* Title */}
@@ -110,28 +117,54 @@ export default function NewJournalPage() {
           placeholder="Entry title..."
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="rounded-xl text-lg font-medium h-12 bg-white/80"
+          className="rounded-xl text-lg font-medium h-12"
         />
 
         {/* Collection Selector */}
         <div className="flex items-center gap-2">
-          <select
-            value={collectionId}
-            onChange={(e) => setCollectionId(e.target.value)}
-            className="flex-1 h-10 rounded-xl border border-gray-200 bg-white/80 px-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500"
-          >
-            <option value="">No collection</option>
-            {collections?.map((col) => (
-              <option key={col.id} value={col.id}>
-                {col.name}
-              </option>
-            ))}
-          </select>
+
+          <div className="flex-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`w-full h-10 justify-between bg-transparent border-gray-200 px-3 font-medium ${
+                      collectionId ? "text-gray-900" : "text-gray-500"
+                    }`}
+                  >
+                    {collectionId
+                      ? collections?.find((c) => c.id === collectionId)?.name || "Collection"
+                      : "No collection"}
+
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent
+                  align="start"
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto bg-white/80 backdrop-blur-sm border border-gray-200"
+                >
+                  <DropdownMenuItem onClick={() => setCollectionId("")}>
+                    No collection
+                  </DropdownMenuItem>
+
+                  {collections?.map((col) => (
+                    <DropdownMenuItem
+                      key={col.id}
+                      onClick={() => setCollectionId(col.id)}
+                    >
+                      {col.name}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
           <InlineCreateCollection />
         </div>
 
         {/* TipTap Editor */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden min-h-[400px]">
+        <div className="backdrop-blur-sm rounded-sm border border-gray-200 overflow-hidden min-h-[400px]">
           <TipTapEditor content={content} onChange={setContent} />
         </div>
 
@@ -175,14 +208,14 @@ function InlineCreateCollection() {
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} className="bg-transparent">
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="rounded-xl h-10 w-10 border-orange-200 hover:bg-orange-50">
+        <Button variant="outline" size="icon" className="cursor-pointer rounded-md h-10 w-10 border-orange-200 hover:bg-orange-50">
           <Plus className="h-4 w-4 text-orange-600" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-2xl">
-        <DialogHeader>
+      <DialogContent className="bg-white/70 backdrop-blur-smborder border-gray-200">
+        <DialogHeader className="mb-5">
           <DialogTitle>Quick Create Collection</DialogTitle>
         </DialogHeader>
         <form
@@ -197,11 +230,10 @@ function InlineCreateCollection() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="rounded-xl"
           />
           <div className="flex justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="ghost" className="rounded-xl">Cancel</Button>
+              <Button variant="ghost" className="cursor-pointer">Cancel</Button>
             </DialogClose>
             <Button
               type="submit"

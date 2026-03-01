@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -130,7 +131,7 @@ export default function JournalEntryPage() {
     collections?.find((c) => c.id === entry.collectionId)?.name;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
         <Button
@@ -210,74 +211,83 @@ export default function JournalEntryPage() {
         </div>
       ) : (
         /* ===== View Mode ===== */
-        <>
-          <Card className="rounded-2xl shadow-md bg-white/80 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">{entry.title}</h1>
-              <div className="flex items-center gap-3 text-sm text-gray-400 mb-6">
-                <span>{date}</span>
-                {collectionName && (
-                  <Badge className="bg-orange-50 text-orange-700 border-orange-200">
-                    {collectionName}
-                  </Badge>
-                )}
+        <Card className="rounded-2xl shadow-md bg-white/80 backdrop-blur-sm">
+          <CardContent className="p-0">
+            <Tabs defaultValue="entry" className="w-full">
+              <div className="px-6 pt-5 pb-0">
+                <TabsList className="bg-gray-100/80 rounded-lg p-1">
+                  <TabsTrigger value="entry" className="rounded-md px-5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    Entry
+                  </TabsTrigger>
+                  <TabsTrigger value="analysis" className="rounded-md px-5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    Analysis
+                  </TabsTrigger>
+                </TabsList>
               </div>
 
-              {/* Rich text content */}
-              <div
-                className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700"
-                dangerouslySetInnerHTML={{ __html: entry.content || "<p>No content</p>" }}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Sentiment Block */}
-          {entry.sentimentLabel && (
-            <Card className="rounded-2xl shadow-md bg-white/80 backdrop-blur-sm mt-4">
-              <CardContent className="p-5">
-                <h3 className="font-semibold text-gray-900 mb-3">Sentiment Analysis</h3>
-                <div className="flex flex-wrap gap-3 mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 uppercase">Label:</span>
-                    <Badge variant="secondary">{entry.sentimentLabel}</Badge>
-                  </div>
-                  {moodScore && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500 uppercase">Mood:</span>
-                      <Badge variant="outline">{moodScore} / 10</Badge>
-                    </div>
+              <TabsContent value="entry" className="px-6 pb-6 pt-4 mt-0">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">{entry.title}</h1>
+                <div className="flex items-center gap-3 text-sm text-gray-400 mb-6">
+                  <span>{date}</span>
+                  {collectionName && (
+                    <Badge className="bg-orange-50 text-orange-700 border-orange-200">
+                      {collectionName}
+                    </Badge>
                   )}
                 </div>
+                <div
+                  className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: entry.content || "<p>No content</p>" }}
+                />
+              </TabsContent>
 
-                {entry.emotions?.length > 0 && (
-                  <div className="mb-3">
-                    <span className="text-xs text-gray-500 uppercase block mb-1.5">Emotions</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {entry.emotions.map((e) => (
-                        <Badge key={e} className="bg-orange-50 text-orange-700 border-orange-200 text-xs">
-                          {e}
-                        </Badge>
-                      ))}
+              <TabsContent value="analysis" className="px-6 pb-6 pt-4 mt-0">
+                {entry.sentimentLabel ? (
+                  <div className="max-w-lg mx-auto text-center space-y-6 py-4">
+                    {/* Mood Score — large visual */}
+                    {moodScore && (
+                      <div>
+                        <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-amber-50 border-4 border-orange-200 shadow-sm">
+                          <span className="text-2xl font-bold text-orange-700">{moodScore}</span>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-2">Mood Score</p>
+                      </div>
+                    )}
+
+                    {/* Sentiment Label */}
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xs font-medium uppercase tracking-wider text-gray-400">Sentiment</span>
+                      <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-sm px-3 py-1 capitalize">
+                        {entry.sentimentLabel}
+                      </Badge>
                     </div>
+
+                    {/* Emotions */}
+                    {entry.emotions?.length > 0 && (
+                      <div>
+                        <span className="text-xs font-medium uppercase tracking-wider text-gray-400">Emotions Detected</span>
+                        <div className="flex flex-wrap justify-center gap-2 mt-3">
+                          {entry.emotions.map((e) => (
+                            <Badge
+                              key={e}
+                              className="bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border border-orange-200 px-3 py-1 text-sm capitalize shadow-sm"
+                            >
+                              {e}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-10 text-gray-400">
+                    <p className="text-sm">No sentiment analysis available for this entry.</p>
                   </div>
                 )}
-
-                {entry.keywords?.length > 0 && (
-                  <div>
-                    <span className="text-xs text-gray-500 uppercase block mb-1.5">Keywords</span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {entry.keywords.map((k) => (
-                        <Badge key={k} className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                          {k}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

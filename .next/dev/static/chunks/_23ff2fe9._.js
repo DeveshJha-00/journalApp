@@ -297,14 +297,13 @@ function useCarousel() {
     return context;
 }
 _s(useCarousel, "b9L3QQ+jgeyIrH0NfHrJ8nn7VMU=");
-function Carousel({ orientation = "horizontal", opts, setApi, className, children, ...props }) {
+function Carousel({ orientation = "horizontal", opts, plugins = [], setApi, className, children, ...props }) {
     _s1();
     const [carouselRef, api] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$embla$2d$carousel$2d$react$2f$esm$2f$embla$2d$carousel$2d$react$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])({
         ...opts,
         axis: orientation === "horizontal" ? "x" : "y",
-        dragFree: true,
-        containScroll: "trimSnaps"
-    });
+        dragFree: true
+    }, plugins);
     const [canScrollPrev, setCanScrollPrev] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](false);
     const [canScrollNext, setCanScrollNext] = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"](false);
     const onSelect = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useCallback"]({
@@ -386,12 +385,12 @@ function Carousel({ orientation = "horizontal", opts, setApi, className, childre
             children: children
         }, void 0, false, {
             fileName: "[project]/components/ui/carousel.jsx",
-            lineNumber: 93,
+            lineNumber: 94,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/ui/carousel.jsx",
-        lineNumber: 81,
+        lineNumber: 82,
         columnNumber: 5
     }, this);
 }
@@ -412,12 +411,12 @@ function CarouselContent({ className, ...props }) {
             ...props
         }, void 0, false, {
             fileName: "[project]/components/ui/carousel.jsx",
-            lineNumber: 114,
+            lineNumber: 115,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/ui/carousel.jsx",
-        lineNumber: 110,
+        lineNumber: 111,
         columnNumber: 5
     }, this);
 }
@@ -436,7 +435,7 @@ function CarouselItem({ className, ...props }) {
         ...props
     }, void 0, false, {
         fileName: "[project]/components/ui/carousel.jsx",
-        lineNumber: 130,
+        lineNumber: 131,
         columnNumber: 5
     }, this);
 }
@@ -458,12 +457,12 @@ function CarouselPrevious({ className, ...props }) {
         ...props,
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__["ArrowLeft"], {}, void 0, false, {
             fileName: "[project]/components/ui/carousel.jsx",
-            lineNumber: 160,
+            lineNumber: 161,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/ui/carousel.jsx",
-        lineNumber: 146,
+        lineNumber: 147,
         columnNumber: 5
     }, this);
 }
@@ -485,12 +484,12 @@ function CarouselNext({ className, ...props }) {
         ...props,
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$right$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowRight$3e$__["ArrowRight"], {}, void 0, false, {
             fileName: "[project]/components/ui/carousel.jsx",
-            lineNumber: 183,
+            lineNumber: 184,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/ui/carousel.jsx",
-        lineNumber: 169,
+        lineNumber: 170,
         columnNumber: 5
     }, this);
 }
@@ -524,6 +523,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$carousel
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$embla$2d$carousel$2d$autoplay$2f$esm$2f$embla$2d$carousel$2d$autoplay$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/embla-carousel-autoplay/esm/embla-carousel-autoplay.esm.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/card.jsx [app-client] (ecmascript)");
 "use client";
+;
 ;
 ;
 ;
@@ -565,7 +565,7 @@ const TestimonialCarousel = ()=>{
                 children: "What Our Writers Say"
             }, void 0, false, {
                 fileName: "[project]/components/TestimonialCarasouel.jsx",
-                lineNumber: 47,
+                lineNumber: 48,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$carousel$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Carousel"], {
@@ -575,7 +575,9 @@ const TestimonialCarousel = ()=>{
                 plugins: [
                     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$embla$2d$carousel$2d$autoplay$2f$esm$2f$embla$2d$carousel$2d$autoplay$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"])({
                         delay: 2000,
-                        stopOnInteraction: false
+                        stopOnInteraction: false,
+                        stopOnFocusIn: false,
+                        playOnInit: true
                     })
                 ],
                 className: "w-full mx-auto",
@@ -599,7 +601,7 @@ const TestimonialCarousel = ()=>{
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                                    lineNumber: 68,
+                                                    lineNumber: 71,
                                                     columnNumber: 21
                                                 }, ("TURBOPACK compile-time value", void 0)),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("footer", {
@@ -609,7 +611,7 @@ const TestimonialCarousel = ()=>{
                                                             children: testimonial.author
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                                            lineNumber: 72,
+                                                            lineNumber: 75,
                                                             columnNumber: 23
                                                         }, ("TURBOPACK compile-time value", void 0)),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -617,61 +619,61 @@ const TestimonialCarousel = ()=>{
                                                             children: testimonial.role
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                                            lineNumber: 75,
+                                                            lineNumber: 78,
                                                             columnNumber: 23
                                                         }, ("TURBOPACK compile-time value", void 0))
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                                    lineNumber: 71,
+                                                    lineNumber: 74,
                                                     columnNumber: 21
                                                 }, ("TURBOPACK compile-time value", void 0))
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                            lineNumber: 67,
+                                            lineNumber: 70,
                                             columnNumber: 19
                                         }, ("TURBOPACK compile-time value", void 0))
                                     }, void 0, false, {
                                         fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                        lineNumber: 66,
+                                        lineNumber: 69,
                                         columnNumber: 17
                                     }, ("TURBOPACK compile-time value", void 0))
                                 }, void 0, false, {
                                     fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                    lineNumber: 65,
+                                    lineNumber: 68,
                                     columnNumber: 15
                                 }, ("TURBOPACK compile-time value", void 0))
                             }, index, false, {
                                 fileName: "[project]/components/TestimonialCarasouel.jsx",
-                                lineNumber: 64,
+                                lineNumber: 67,
                                 columnNumber: 13
                             }, ("TURBOPACK compile-time value", void 0)))
                     }, void 0, false, {
                         fileName: "[project]/components/TestimonialCarasouel.jsx",
-                        lineNumber: 62,
+                        lineNumber: 65,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$carousel$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CarouselPrevious"], {}, void 0, false, {
                         fileName: "[project]/components/TestimonialCarasouel.jsx",
-                        lineNumber: 85,
+                        lineNumber: 88,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0)),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$carousel$2e$jsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CarouselNext"], {}, void 0, false, {
                         fileName: "[project]/components/TestimonialCarasouel.jsx",
-                        lineNumber: 86,
+                        lineNumber: 89,
                         columnNumber: 9
                     }, ("TURBOPACK compile-time value", void 0))
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/TestimonialCarasouel.jsx",
-                lineNumber: 50,
+                lineNumber: 51,
                 columnNumber: 7
             }, ("TURBOPACK compile-time value", void 0))
         ]
     }, void 0, true, {
         fileName: "[project]/components/TestimonialCarasouel.jsx",
-        lineNumber: 46,
+        lineNumber: 47,
         columnNumber: 5
     }, ("TURBOPACK compile-time value", void 0));
 };

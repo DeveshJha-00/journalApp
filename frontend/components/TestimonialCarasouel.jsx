@@ -9,6 +9,7 @@ import {
   CarouselPrevious,
 } from "./ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import Fade from "embla-carousel-fade";
 import { Card, CardContent } from "./ui/card";
 
 
@@ -49,16 +50,18 @@ const TestimonialCarousel = () => {
       </h2>
       <Carousel
         opts={{
-            loop: true, 
+          loop: true,
         }}
         plugins={[
-            Autoplay({
+          Autoplay({
             delay: 2000,
-            stopOnInteraction: false, 
-            }),
+            stopOnInteraction: false,   // keeps playing after clicking next/prev
+            stopOnFocusIn: false,       // keeps playing if focused
+            playOnInit: true,           // starts automatically
+          }),
         ]}
         className="w-full mx-auto"
-        >
+      >
         <CarouselContent>
           {testimonials.map((testimonial, index) => (
             <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">

@@ -19,6 +19,7 @@ function useCarousel() {
 function Carousel({
   orientation = "horizontal",
   opts,
+  plugins=[],
   setApi,
   className,
   children,
@@ -28,8 +29,8 @@ function Carousel({
     ...opts,
     axis: orientation === "horizontal" ? "x" : "y",
     dragFree: true,
-    containScroll: "trimSnaps",
-  });
+  }, plugins
+);
 
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
