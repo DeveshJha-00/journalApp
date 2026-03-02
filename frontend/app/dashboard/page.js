@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-4xl font-bold gradient-title text-orange-600">Dashboard</h1>
+          <h1 className="text-4xl font-bold gradient-title text-orange-600">How are you today, </h1>
           {!userLoading && currentUser && (
             <div className="flex items-center gap-2 mt-1">
               {editingUsername ? (
@@ -163,7 +163,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex items-center gap-1.5">
                   <span className="text-lg text-gray-500">
-                    Welcome, <span className="font-medium text-gray-700">{currentUser.userName}</span>
+                    <span className="font-medium text-gray-700">{currentUser.userName}</span>
                   </span>
                   <button
                     onClick={() => {
@@ -388,7 +388,7 @@ function ReportCard({ report }) {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto bg-white/80 backdrop-blur-sm border border-gray-200 ">
         <DialogHeader>
           <DialogTitle>Report — {date}</DialogTitle>
         </DialogHeader>

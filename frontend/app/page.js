@@ -34,7 +34,7 @@ const features = [
     icon: Brain,
     title: "AI Sentiment Analysis",
     description:
-      "Every entry is analyzed for mood, emotions, and key themes — giving you deeper self-awareness automatically.",
+      "Every entry is analyzed for mood, emotions, and key themes - giving you deeper self-awareness automatically.",
   },
   {
     icon: BarChart3,
@@ -65,7 +65,7 @@ const features = [
 const faqs = [
   {
     q: "How does the AI sentiment analysis work?",
-    a: "When you publish a journal entry, our AI analyzes the text to identify your mood (on a scale), key emotions like joy or anxiety, and recurring themes. This happens automatically — no extra steps needed.",
+    a: "When you publish a journal entry, our AI analyzes the text to identify your mood (on a scale), key emotions like joy or anxiety, and recurring themes. This happens automatically - no extra steps needed.",
   },
   {
     q: "What are biweekly reports?",
@@ -93,14 +93,12 @@ export default function Home() {
         <div className="max-w-5xl mx-auto text-center text-orange-800 space-y-8">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
             <span className="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
-            Your Space To Reflect
+            Reflect. Record. Understand.
             </span>
-            <br/>
-            Your mind deserves a safe space
           </h1>
-          <p className="text-lg md:text-xl text-orange-800 mb-8 max-w-2xl mx-auto">
-            Journal freely, track your mood, and receive personalized
-            mental health insights - all in one beautiful app.
+          <p className="text-lg md:text-xl text-orange-800 mb-8 max-w-4xl mx-auto">
+            Capture your thoughts, track your moods, and build a mindful archive of your inner world
+            <br/>All within a thoughtfully designed journaling space
           </p>
 
           <div className="relative">
@@ -129,8 +127,8 @@ export default function Home() {
 
           <div className="flex gap-4 justify-center">
             <Link href="/auth">
-              <Button variant="journal" className="px-8 py-6 rounded-full flex items-center gap-2">
-                Start Journaling <ArrowRight className="ml-2 h-4 w-4" />
+              <Button variant="journal" className="group px-8 py-6 rounded-full flex items-center gap-2">
+                Start Journaling <ArrowRight className="ml-2 h-4 w-4  transition-transform duration-200 group-hover:translate-x-1" />
               </Button>
             </Link>
             <Link href="#features">
@@ -202,9 +200,10 @@ export default function Home() {
           <Link href="/auth">
             <Button
               size="lg" variant="journal"
-              className="text-base px-10"
+              className="group text-base px-10"
             >
-              Get Started For Free <ArrowRight className="ml-2 h-4 w-4" />
+              Get Started For Free 
+              <ArrowRight className="ml-2 h-4 w-3 transition-transform duration-200 group-hover:translate-x-1" />
             </Button>
           </Link>
         </div>

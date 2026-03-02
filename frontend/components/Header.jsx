@@ -11,14 +11,14 @@ const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md border-b border-orange-100">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-1 flex items-center justify-between">
         <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-2">
           <Image
-            src="/logo.png"
+            src="/logo_2.svg"
             alt="Journal App"
-            width={200}
-            height={60}
-            className="h-9 w-auto object-contain"
+            width={300}
+            height={100}
+            className="h-16 w-auto object-contain bg-white/80 backdrop-blur-sm rounded-xl"
           />
         </Link>
 
