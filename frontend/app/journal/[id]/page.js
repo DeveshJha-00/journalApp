@@ -143,7 +143,7 @@ export default function JournalEntryPage() {
         </Button>
         <div className="flex gap-2">
           {!editing && (
-            <Button variant="outline" size="sm" onClick={startEditing} className="rounded-xl border-orange-200">
+            <Button variant="outline" size="sm" onClick={startEditing} className="bg-transparent hover:bg-orange-50 border-orange-200">
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
             </Button>
           )}
@@ -153,7 +153,7 @@ export default function JournalEntryPage() {
                 <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="rounded-2xl">
+            <AlertDialogContent className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -180,19 +180,19 @@ export default function JournalEntryPage() {
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="rounded-xl text-lg font-medium h-12 bg-white/80"
+            className="text-lg font-medium h-12 bg-transparent shadow md"
           />
           <select
             value={editCollectionId}
             onChange={(e) => setEditCollectionId(e.target.value)}
-            className="w-full h-10 rounded-xl border border-gray-200 bg-white/80 px-3 text-sm text-gray-700"
+            className="w-full h-10 rounded-sm border border-gray-200 bg-transparent shadow md px-3 text-sm text-gray-700"
           >
             <option value="">No collection</option>
             {collections?.map((col) => (
-              <option key={col.id} value={col.id}>{col.name}</option>
+              <option className="bg-white/80 backdrop-blur-sm" key={col.id} value={col.id}>{col.name}</option>
             ))}
           </select>
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden min-h-[300px]">
+          <div className="bg-transparent shadow md backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden min-h-[300px]">
             <TipTapEditor content={editContent} onChange={setEditContent} />
           </div>
           <div className="flex justify-end gap-3">
@@ -211,15 +211,15 @@ export default function JournalEntryPage() {
         </div>
       ) : (
         /* ===== View Mode ===== */
-        <Card className="rounded-2xl shadow-md bg-white/80 backdrop-blur-sm">
+        <Card className="bg-transparent shadow-md backdrop-blur-sm">
           <CardContent className="p-0">
             <Tabs defaultValue="entry" className="w-full">
               <div className="px-6 pt-5 pb-0">
                 <TabsList className="bg-gray-100/80 rounded-lg p-1">
-                  <TabsTrigger value="entry" className="rounded-md px-5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  <TabsTrigger value="entry" className="rounded-sm px-5 data-[state=active]:bg-orange-100 data-[state=active]:shadow-sm">
                     Entry
                   </TabsTrigger>
-                  <TabsTrigger value="analysis" className="rounded-md px-5 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                  <TabsTrigger value="analysis" className="rounded-sm px-5 data-[state=active]:bg-orange-100 data-[state=active]:shadow-sm">
                     Analysis
                   </TabsTrigger>
                 </TabsList>

@@ -9,7 +9,6 @@ import {
   CarouselPrevious,
 } from "./ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import Fade from "embla-carousel-fade";
 import { Card, CardContent } from "./ui/card";
 
 

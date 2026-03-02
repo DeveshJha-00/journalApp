@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { collectionAPI } from "@/lib/api";
@@ -30,8 +30,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, FolderOpen } from "lucide-react";
+import { Plus, Pencil, Trash2, FolderOpen, Search, CalendarIcon, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 const COLORS = [
   "#ea580c", "#dc2626", "#2563eb", "#16a34a", "#9333ea",
@@ -42,6 +45,12 @@ export default function CollectionsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+
+  const [keyword, setKeyword] = useState(searchParams.get("q") || "");
+  const [collectionFilter, setCollectionFilter] = useState(searchParams.get("collection") || "");
+  const [dateFilter, setDateFilter] = useState(null);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) router.push("/auth");
@@ -52,6 +61,30 @@ export default function CollectionsPage() {
     queryFn: () => collectionAPI.getAll().then((r) => r.data),
     enabled: isAuthenticated,
   });
+
+  // Client-side filtering
+  const filtered = collections?.filter((collection) => {
+    if (keyword) {
+      const q = keyword.toLowerCase();
+      const matchTitle = collection.name?.toLowerCase().includes(q);
+      if (!matchTitle) return false;
+    }
+    if (collectionFilter) {
+      if (collection.id !== collectionFilter) return false;
+    }
+    if (dateFilter) {
+      const entryDate = collection.createdDate ? new Date(collection.createdDate).toDateString() : null;
+      if (entryDate !== dateFilter.toDateString()) return false;
+    }
+    return true;
+  });
+
+  const hasFilters = collectionFilter || dateFilter;
+
+  const clearFilters = () => {
+    setCollectionFilter("");
+    setDateFilter(null);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (id) => collectionAPI.delete(id),
@@ -65,26 +98,76 @@ export default function CollectionsPage() {
   if (authLoading || !isAuthenticated) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Collections</h1>
+        <h1 className="text-4xl font-bold text-orange-600">My Collections</h1>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+
+        {/* Search */}
+        <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search Collections..."
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              className="pl-9 rounded-sm"
+            />
+          </div>
+
+          {/* Date Filter */}
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={`h-10 border-gray-200 bg-transparent shadow md px-3 text-sm font-semibold ${
+                  dateFilter ? "text-gray-900" : "text-gray-500"
+                }`}
+              >
+                <CalendarIcon className="h-4 w-4 mr-2 text-gray-600" />
+                {dateFilter ? format(dateFilter, "MMM d, yyyy") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 bg-white/70 backdrop-blur-sm border border-gray-200" align="start">
+              <Calendar
+                mode="single"
+                selected={dateFilter}
+                onSelect={(date) => {
+                  setDateFilter(date);
+                  setCalendarOpen(false);
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+
+            {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-gray-500 hover:text-red-600 rounded-xl">
+              <X className="h-4 w-4 mr-1" /> Clear
+            </Button>
+          )}
+      </div>
+
+      {/* Collections List */}
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-36 rounded-2xl" />
           ))}
         </div>
-      ) : (
+      ) : filtered?.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {collections?.map((col) => (
-            <CollectionCard
-              key={col.id}
-              collection={col}
-              onDelete={() => deleteMutation.mutate(col.id)}
-            />
+          {filtered.map((collection) => (
+            <CollectionCard 
+            key={collection.id} 
+            collection={collection} 
+            onDelete={() => deleteMutation.mutate(collection.id)} />
           ))}
+          <CreateCollectionCard />
+        </div>
+      ) :(
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           <CreateCollectionCard />
         </div>
       )}
@@ -95,57 +178,61 @@ export default function CollectionsPage() {
 function CollectionCard({ collection, onDelete }) {
   const accentColor = collection.color || "#ea580c";
 
+  const date = collection.createdDate
+    ? new Date(collection.createdDate).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "";
+
   return (
-    <Card className="rounded-2xl shadow-md bg-white/80 backdrop-blur-sm hover:shadow-lg transition-shadow group relative overflow-hidden">
-      <div
-        className="absolute top-0 left-0 w-full h-1"
-        style={{ backgroundColor: accentColor }}
-      />
-      <CardContent className="p-5 pt-6">
-        <div className="flex items-start justify-between mb-3">
-          <Link href={`/collections/${collection.id}`} className="flex-1">
-            <h3 className="font-semibold text-gray-900 text-lg hover:text-orange-600 transition-colors">
+    <Link
+      href={`/collections/${collection.id}`}
+      className="block relative group transition-transform duration-300 hover:-translate-y-1"
+    >
+      {/* Stack Layer 2 */}
+      <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-sm bg-orange-100/40 border border-orange-100 transition-all duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+
+      {/* Stack Layer 1 */}
+      <div className="absolute inset-0 translate-x-1 translate-y-1 bg-white rounded-sm border border-gray-200 shadow-sm transition-all duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+
+      {/* /* Main Card */} 
+        <Card className="relative overflow-hidden border border-gray-200 rounded-sm bg-gradient-to-br from-orange-100 via-orange-50 to-white hover:shadow-xl transition-all duration-300 cursor-pointer">
+          
+          {/* Left gradient stripe */}
+        <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-orange-400 to-orange-200 rounded-l-2xl" />
+
+        <CardContent className="p-6 relative">
+          
+          {/* Header */}
+          <div className="flex items-start mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
               {collection.name}
             </h3>
-          </Link>
-          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <EditCollectionDialog collection={collection} />
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-red-600">
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="rounded-2xl">
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete collection?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will delete the collection &ldquo;{collection.name}&rdquo;. Entries in this collection will not be deleted.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={onDelete}
-                    className="bg-red-600 hover:bg-red-700 rounded-xl"
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+
+            {date && (
+              <span className="ml-auto text-sm text-gray-400 whitespace-nowrap">
+                {date}
+              </span>
+            )}
           </div>
-        </div>
-        {collection.description && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-3">{collection.description}</p>
-        )}
-        <Link href={`/collections/${collection.id}`}>
-          <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 p-0 h-auto text-xs">
-            View entries →
-          </Button>
-        </Link>
-      </CardContent>
-    </Card>
+
+          {/* Description */}
+          {collection.description && (
+            <p className="text-sm text-gray-600 leading-relaxed mt-1 mb-4 line-clamp-2">
+              {collection.description}
+            </p>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center gap-1 text-orange-600 group-hover:text-orange-700 transition-colors text-sm font-medium">
+            <span>View entries</span>
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -178,7 +265,7 @@ function CreateCollectionCard() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="rounded-2xl border-2 border-dashed border-orange-200 hover:border-orange-400 bg-white/50 hover:bg-orange-50/50 transition-all p-5 flex flex-col items-center justify-center gap-2 min-h-[140px]">
+        <button className="cursor-pointer rounded-sm border-2 border-dashed border-orange-200 hover:border-orange-400 bg-white/50 hover:bg-orange-50/50 transition-all p-5 flex flex-col items-center justify-center gap-2 min-h-[140px]">
           <Plus className="h-8 w-8 text-orange-400" />
           <span className="text-sm font-medium text-orange-600">New Collection</span>
         </button>

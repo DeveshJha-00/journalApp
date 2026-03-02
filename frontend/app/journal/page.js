@@ -113,7 +113,7 @@ function JournalListContent() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className={`h-10 rounded-xl border-gray-200 px-3 text-sm font-semibold ${
+              className={`h-10 border-gray-200 bg-transparent shadow md px-3 text-sm font-semibold ${
                 dateFilter ? "text-gray-900" : "text-gray-500"
               }`}
             >
@@ -121,7 +121,7 @@ function JournalListContent() {
               {dateFilter ? format(dateFilter, "MMM d, yyyy") : "Pick a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0 bg-white/70 backdrop-blur-sm border border-gray-200" align="start">
             <Calendar
               mode="single"
               selected={dateFilter}
@@ -138,7 +138,7 @@ function JournalListContent() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className={`h-10 rounded-xl border-gray-200 px-3 text-sm font-semibold ${
+              className={`h-10 bg-transparent shadow md border-gray-200 px-3 text-sm font-semibold ${
                 emotionFilter ? "text-gray-900" : "text-gray-500"
               }`}
             >
@@ -148,12 +148,12 @@ function JournalListContent() {
               <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto">
+          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto bg-white/70 backdrop-blur-sm border border-gray-200">
             <DropdownMenuItem onClick={() => setEmotionFilter("")}>
               All emotions
             </DropdownMenuItem>
             {allEmotions.map((em) => (
-              <DropdownMenuItem key={em} onClick={() => setEmotionFilter(em)}>
+              <DropdownMenuItem className="cursor-pointer" key={em} onClick={() => setEmotionFilter(em)}>
                 {em.charAt(0).toUpperCase() + em.slice(1)}
               </DropdownMenuItem>
             ))}
@@ -165,7 +165,7 @@ function JournalListContent() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className={`h-10 rounded-xl border-gray-200 px-3 text-sm font-semibold ${
+              className={`h-10 bg-transparent shadow md border-gray-200 px-3 text-sm font-semibold ${
                 collectionFilter ? "text-gray-900" : "text-gray-500"
               }`}
             >
@@ -175,12 +175,12 @@ function JournalListContent() {
               <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto">
+          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto bg-white/70 backdrop-blur-smborder border-gray-200">
             <DropdownMenuItem onClick={() => setCollectionFilter("")}>
               All collections
             </DropdownMenuItem>
             {collections?.map((col) => (
-              <DropdownMenuItem key={col.id} onClick={() => setCollectionFilter(col.id)}>
+              <DropdownMenuItem className="cursor-pointer bg-white/70 backdrop-blur-smborder border-gray-200" key={col.id} onClick={() => setCollectionFilter(col.id)}>
                 {col.name}
               </DropdownMenuItem>
             ))}
@@ -214,11 +214,6 @@ function JournalListContent() {
           ) : (
             <>
               <p className="mb-4">No journal entries yet.</p>
-              <Link href="/journal/new">
-                <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl">
-                  Write your first entry
-                </Button>
-              </Link>
             </>
           )}
         </div>
@@ -255,7 +250,7 @@ function EntryCard({ entry, collections }) {
 
   return (
     <Link href={`/journal/${entry.id}`}>
-      <Card className="group relative overflow-hidden border border-gray-200 bg-gradient-to-br from-white via-orange-50/40 to-white hover:shadow-lg transition-all duration-300 cursor-pointer shadow md">
+      <Card className="group relative overflow-hidden border border-gray-200 bg-gradient-to-br from-orange-50 to-white hover:shadow-lg transition-all duration-300 cursor-pointer shadow md">
         <CardContent className="p-6 relative">
           <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-orange-400 to-orange-200 rounded-l-2xl" />
             <div className="flex items-start mb-2">
