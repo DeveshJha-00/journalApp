@@ -2,8 +2,10 @@ package net.engineeringdigest.journalApp.services;
 
 import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.entity.Collection;
+import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.CollectionRepository;
+import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,9 @@ public class CollectionService {
 
     @Autowired
     private CollectionRepository collectionRepository;
+
+    @Autowired
+    private JournalEntryRepository journalEntryRepository;
 
     @Autowired
     private UserService userService;
@@ -106,14 +111,26 @@ public class CollectionService {
             User user = userService.findByUsername(userName);
             Optional<Collection> collection = collectionRepository.findById(id);
             if (collection.isPresent() && collection.get().getUserId().equals(user.getId())) {
+                // Unassign all entries from this collection (entries are NOT deleted)
+                List<JournalEntry> entries = journalEntryRepository.findByCollectionId(id);
+                for (JournalEntry entry : entries) {
+                    entry.setCollectionId(null);
+                    journalEntryRepository.save(entry);
+                    // Invalidate entry cache
+                    String entryKey = redisService.buildEntryKey(entry.getId().toHexString());
+                    redisService.delete(entryKey);
+                }
+
                 collectionRepository.deleteById(id);
 
                 // Invalidate all related caches
                 redisService.invalidateCollectionCache(id.toHexString());
+                String collectionEntriesKey = redisService.buildCollectionEntriesKey(id.toHexString());
+                redisService.delete(collectionEntriesKey);
                 String userCollectionsKey = redisService.buildUserCollectionsKey(user.getId().toHexString());
                 redisService.delete(userCollectionsKey);
 
-                log.debug("Collection deleted and cache invalidated: {}", id);
+                log.debug("Collection deleted, entries unassigned, and cache invalidated: {}", id);
                 return true;
             }
         } catch (Exception e) {

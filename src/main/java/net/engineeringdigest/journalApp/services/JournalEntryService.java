@@ -184,8 +184,32 @@ public class JournalEntryService {
             Optional<JournalEntry> entryOpt = journalEntryRepository.findById(entryId);
             if (entryOpt.isPresent()) {
                 JournalEntry entry = entryOpt.get();
+                ObjectId oldCollectionId = entry.getCollectionId();
+
                 entry.setCollectionId(collectionId);
                 journalEntryRepository.save(entry);
+
+                // Invalidate entry cache
+                String entryKey = redisService.buildEntryKey(entryId.toHexString());
+                redisService.delete(entryKey);
+
+                // Invalidate old collection's entries cache
+                if (oldCollectionId != null) {
+                    String oldKey = redisService.buildCollectionEntriesKey(oldCollectionId.toHexString());
+                    redisService.delete(oldKey);
+                }
+
+                // Invalidate new collection's entries cache
+                if (collectionId != null) {
+                    String newKey = redisService.buildCollectionEntriesKey(collectionId.toHexString());
+                    redisService.delete(newKey);
+                }
+
+                // Invalidate user's recent entries cache
+                String recentEntriesKey = redisService.buildUserRecentEntriesKey(user.getId().toHexString());
+                redisService.delete(recentEntriesKey);
+
+                log.debug("Entry {} assigned to collection {}, caches invalidated", entryId, collectionId);
                 return true;
             }
         } catch (Exception e) {

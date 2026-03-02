@@ -171,6 +171,8 @@ export default function CollectionsPage() {
 }
 
 function CollectionCard({ collection, onDelete }) {
+  const router = useRouter();
+
   const date = collection.createdDate
     ? new Date(collection.createdDate).toLocaleDateString("en-US", {
         month: "short",
@@ -180,9 +182,9 @@ function CollectionCard({ collection, onDelete }) {
     : "";
 
   return (
-    <Link
-      href={`/collections/${collection.id}`}
-      className="block relative group transition-transform duration-300 hover:-translate-y-1"
+    <div
+      onClick={() => router.push(`/collections/${collection.id}`)}
+      className="block relative group transition-transform duration-300 hover:-translate-y-1 cursor-pointer"
     >
       {/* Stack Layer 2 */}
       <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-sm bg-orange-100/40 border border-orange-100 transition-all duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
@@ -219,13 +221,44 @@ function CollectionCard({ collection, onDelete }) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center gap-1 text-orange-600 group-hover:text-orange-700 transition-colors text-sm font-medium">
-            <span>View entries</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 text-orange-600 group-hover:text-orange-700 transition-colors text-sm font-medium">
+              <span>View entries</span>
+              <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+            </div>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors z-10 cursor-pointer"
+                  title="Delete collection"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="bg-white/80 backdrop-blur-sm border border-gray-200" onClick={(e) => e.stopPropagation()}>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete &quot;{collection.name}&quot;?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will delete the collection. All entries in this collection will be kept but unassigned.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </CardContent>
       </Card>
-    </Link>
+    </div>
   );
 }
 

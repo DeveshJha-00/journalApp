@@ -91,7 +91,7 @@ function JournalListContent() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-4xl font-bold text-orange-600">My Journal Entries</h1>
         <Link href="/journal/new">
-          <Button className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl">
+          <Button className="bg-orange-600 hover:bg-orange-700 text-white">
             <PenLine className="h-4 w-4 mr-1.5" /> New
           </Button>
         </Link>
