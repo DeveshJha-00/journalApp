@@ -36,11 +36,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
-const COLORS = [
-  "#ea580c", "#dc2626", "#2563eb", "#16a34a", "#9333ea",
-  "#ca8a04", "#0891b2", "#e11d48", "#4f46e5", "#059669",
-];
-
 export default function CollectionsPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -176,8 +171,6 @@ export default function CollectionsPage() {
 }
 
 function CollectionCard({ collection, onDelete }) {
-  const accentColor = collection.color || "#ea580c";
-
   const date = collection.createdDate
     ? new Date(collection.createdDate).toLocaleDateString("en-US", {
         month: "short",
@@ -240,7 +233,6 @@ function CreateCollectionCard() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [color, setColor] = useState(COLORS[0]);
   const queryClient = useQueryClient();
 
   const createMutation = useMutation({
@@ -251,7 +243,6 @@ function CreateCollectionCard() {
       setOpen(false);
       setName("");
       setDescription("");
-      setColor(COLORS[0]);
     },
     onError: () => toast.error("Failed to create collection"),
   });
@@ -259,7 +250,7 @@ function CreateCollectionCard() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    createMutation.mutate({ name, description, color });
+    createMutation.mutate({ name, description });
   };
 
   return (
@@ -270,7 +261,7 @@ function CreateCollectionCard() {
           <span className="text-sm font-medium text-orange-600">New Collection</span>
         </button>
       </DialogTrigger>
-      <DialogContent className="rounded-2xl">
+      <DialogContent className="bg-white/70 backdrop-blur-smborder border-gray-200">
         <DialogHeader>
           <DialogTitle>Create Collection</DialogTitle>
         </DialogHeader>
@@ -280,39 +271,23 @@ function CreateCollectionCard() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
-            className="rounded-xl"
+            className="mt-4"
           />
           <Textarea
             placeholder="Description (optional)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="rounded-xl resize-none"
+            className="resize-none"
             rows={2}
           />
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Color</p>
-            <div className="flex gap-2 flex-wrap">
-              {COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-full border-2 transition-all ${
-                    color === c ? "border-gray-900 scale-110" : "border-transparent"
-                  }`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
-          </div>
           <div className="flex justify-end gap-2">
             <DialogClose asChild>
-              <Button variant="ghost" className="rounded-xl">Cancel</Button>
+              <Button variant="ghost" className="hover:bg-orange-100">Cancel</Button>
             </DialogClose>
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="bg-orange-600 hover:bg-orange-700 text-white rounded-xl"
+              className="bg-orange-600 hover:bg-orange-700 text-white"
             >
               Create
             </Button>
@@ -327,7 +302,6 @@ function EditCollectionDialog({ collection }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(collection.name);
   const [description, setDescription] = useState(collection.description || "");
-  const [color, setColor] = useState(collection.color || COLORS[0]);
   const queryClient = useQueryClient();
 
   const updateMutation = useMutation({
@@ -343,7 +317,7 @@ function EditCollectionDialog({ collection }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
-    updateMutation.mutate({ name, description, color });
+    updateMutation.mutate({ name, description });
   };
 
   return (
@@ -372,22 +346,6 @@ function EditCollectionDialog({ collection }) {
             className="rounded-xl resize-none"
             rows={2}
           />
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Color</p>
-            <div className="flex gap-2 flex-wrap">
-              {COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setColor(c)}
-                  className={`w-7 h-7 rounded-full border-2 transition-all ${
-                    color === c ? "border-gray-900 scale-110" : "border-transparent"
-                  }`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
-          </div>
           <div className="flex justify-end gap-2">
             <DialogClose asChild>
               <Button variant="ghost" className="rounded-xl">Cancel</Button>

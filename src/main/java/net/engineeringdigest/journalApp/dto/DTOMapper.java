@@ -15,7 +15,6 @@ public class DTOMapper {
         Collection collection = new Collection();
         collection.setName(dto.getName());
         collection.setDescription(dto.getDescription());
-        collection.setColor(dto.getColor());
         return collection;
     }
 
@@ -24,7 +23,6 @@ public class DTOMapper {
             collection.getId() != null ? collection.getId().toHexString() : null,
             collection.getName(),
             collection.getDescription(),
-            collection.getColor(),
             collection.getCreatedDate()
         );
     }
@@ -35,9 +33,6 @@ public class DTOMapper {
         }
         if (dto.getDescription() != null) {
             collection.setDescription(dto.getDescription());
-        }
-        if (dto.getColor() != null) {
-            collection.setColor(dto.getColor());
         }
     }
 

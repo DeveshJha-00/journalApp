@@ -1,3 +1,4 @@
+
 package net.engineeringdigest.journalApp.entity;
 
 import lombok.Data;
@@ -21,8 +22,6 @@ public class Collection {
     private String name;
 
     private String description;
-
-    private String color;
 
     @NonNull
     private ObjectId userId;

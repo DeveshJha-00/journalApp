@@ -14,6 +14,5 @@ public class CollectionResponseDTO {
     private String id;
     private String name;
     private String description;
-    private String color;
     private LocalDateTime createdDate;
 }

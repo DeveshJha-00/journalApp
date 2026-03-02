@@ -52,7 +52,7 @@ const features = [
     icon: Sparkles,
     title: "Smart Collections",
     description:
-      "Organize entries into color-coded collections. Filter by emotions, keywords, dates, or moods.",
+      "Organize entries into smart collections. Filter by emotions, keywords, dates, or moods.",
   },
   {
     icon: Shield,
@@ -77,7 +77,7 @@ const faqs = [
   },
   {
     q: "Can I organize my entries?",
-    a: "Yes! You can create color-coded collections (like 'Work', 'Personal', 'Goals') and assign entries to them. You can also filter entries by date, emotions, or keywords.",
+    a: "Yes! You can create collections (like 'Work', 'Personal', 'Goals') and assign entries to them. You can also filter entries by date, emotions, or keywords.",
   },
   {
     q: "Do I need to pay for this?",

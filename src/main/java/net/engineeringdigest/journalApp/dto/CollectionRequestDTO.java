@@ -16,7 +16,4 @@ public class CollectionRequestDTO {
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
-
-    @Size(max = 7, message = "Color should be a valid hex color code")
-    private String color;
 }

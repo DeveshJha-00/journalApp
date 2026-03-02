@@ -181,11 +181,11 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <Select value={period} onValueChange={setPeriod} className="bg-transparent">
+        <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white/70 backdrop-blur-sm border border-gray-200">
             <SelectItem value="7d">Last 7 Days</SelectItem>
             <SelectItem value="15d">Last 15 Days</SelectItem>
             <SelectItem value="30d">Last 30 Days</SelectItem>
