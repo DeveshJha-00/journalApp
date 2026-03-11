@@ -1,0 +1,14 @@
+frontend/
+target/
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+node_modules/
+nixpacks.toml
+bash.exe.stackdump
+README.md
+*.md
+.env
+.env.*
