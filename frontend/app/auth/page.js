@@ -64,12 +64,12 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <Card className="w-full max-w-md rounded-2xl shadow-lg bg-white/90 backdrop-blur-sm">
+      <Card className="w-full max-w-md rounded-2xl shadow-lg bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl font-bold">
             {isLogin ? "Welcome Back" : "Create Account"}
           </CardTitle>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
             {isLogin
               ? "Sign in to continue journaling"
               : "Start your journaling journey"}
@@ -79,7 +79,7 @@ export default function AuthPage() {
           {/* Google OAuth */}
           <Button
             variant="secondary"
-            className="w-full rounded-xl py-5 border-gray-200 hover:bg-gray-50"
+            className="w-full rounded-xl py-5 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
             onClick={handleGoogleLogin}
           >
             <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
@@ -105,10 +105,10 @@ export default function AuthPage() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-400">or</span>
+              <span className="bg-white dark:bg-gray-900 px-2 text-gray-400">or</span>
             </div>
           </div>
 
@@ -140,7 +140,7 @@ export default function AuthPage() {
               className="rounded-xl"
             />
             {!isLogin && (
-              <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
+              <label className="flex items-start gap-3 p-3 rounded-xl border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <input
                   type="checkbox"
                   checked={sentimentAnalysis}
@@ -148,8 +148,8 @@ export default function AuthPage() {
                   className="mt-0.5 h-4 w-4 rounded accent-orange-600"
                 />
                 <div>
-                  <p className="text-sm font-medium text-gray-800">Enable Sentiment Analysis</p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Enable Sentiment Analysis</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     Receive biweekly mental health reports based on your journal entries. You can change this later.
                   </p>
                 </div>
@@ -168,7 +168,7 @@ export default function AuthPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
             <button 
               onClick={() => setIsLogin(!isLogin)}

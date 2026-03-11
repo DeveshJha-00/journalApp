@@ -114,15 +114,15 @@ function JournalListContent() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className={`h-10 border-gray-200 bg-transparent shadow md px-3 text-sm font-semibold ${
-                dateFilter ? "text-gray-900" : "text-gray-500"
+              className={`h-10 border-gray-200 dark:border-gray-700 bg-transparent shadow md px-3 text-sm font-semibold ${
+                dateFilter ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
               }`}
             >
-              <CalendarIcon className="h-4 w-4 mr-2 text-gray-600" />
+              <CalendarIcon className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-400" />
               {dateFilter ? format(dateFilter, "MMM d, yyyy") : "Pick a date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0 bg-white/70 backdrop-blur-sm border border-gray-200" align="start">
+          <PopoverContent className="w-auto p-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700" align="start">
             <Calendar
               mode="single"
               selected={dateFilter}
@@ -139,8 +139,8 @@ function JournalListContent() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className={`h-10 bg-transparent shadow md border-gray-200 px-3 text-sm font-semibold ${
-                emotionFilter ? "text-gray-900" : "text-gray-500"
+              className={`h-10 bg-transparent shadow md border-gray-200 dark:border-gray-700 px-3 text-sm font-semibold ${
+                emotionFilter ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
               }`}
             >
               {emotionFilter
@@ -149,7 +149,7 @@ function JournalListContent() {
               <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto bg-white/70 backdrop-blur-sm border border-gray-200">
+          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
             <DropdownMenuItem onClick={() => setEmotionFilter("")}>
               All emotions
             </DropdownMenuItem>
@@ -166,8 +166,8 @@ function JournalListContent() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className={`h-10 bg-transparent shadow md border-gray-200 px-3 text-sm font-semibold ${
-                collectionFilter ? "text-gray-900" : "text-gray-500"
+              className={`h-10 bg-transparent shadow md border-gray-200 dark:border-gray-700 px-3 text-sm font-semibold ${
+                collectionFilter ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
               }`}
             >
               {collectionFilter
@@ -176,12 +176,12 @@ function JournalListContent() {
               <ChevronDown className="h-4 w-4 ml-2 text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto bg-white/70 backdrop-blur-smborder border-gray-200">
+          <DropdownMenuContent align="start" className="max-h-60 overflow-y-auto bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
             <DropdownMenuItem onClick={() => setCollectionFilter("")}>
               All collections
             </DropdownMenuItem>
             {collections?.map((col) => (
-              <DropdownMenuItem className="cursor-pointer bg-white/70 backdrop-blur-smborder border-gray-200" key={col.id} onClick={() => setCollectionFilter(col.id)}>
+              <DropdownMenuItem className="cursor-pointer" key={col.id} onClick={() => setCollectionFilter(col.id)}>
                 {col.name}
               </DropdownMenuItem>
             ))}

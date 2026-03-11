@@ -19,16 +19,16 @@ function CustomTooltip({ active, payload, label }) {
   const entriesPayload = payload.find((p) => p.dataKey === "entries");
 
   return (
-    <div className="bg-white border rounded-lg shadow-md p-3">
-      <p className="font-medium text-sm mb-1">
+    <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-md p-3">
+      <p className="font-medium text-sm mb-1 dark:text-gray-100">
         {format(parseISO(label), "MMM d, yyyy")}
       </p>
       {moodPayload?.value != null && (
-        <p className="text-orange-600 text-xs">
+        <p className="text-orange-600 dark:text-orange-400 text-xs">
           Average Mood: {moodPayload.value.toFixed(1)}
         </p>
       )}
-      <p className="text-blue-600 text-xs">
+      <p className="text-blue-600 dark:text-blue-400 text-xs">
         Entries: {entriesPayload?.value ?? 0}
       </p>
     </div>

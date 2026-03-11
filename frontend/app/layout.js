@@ -15,16 +15,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${lora.variable} ${playfair.variable} ${inter.variable}`}>
+    <html lang="en" className={`${lora.variable} ${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <body className="font-lora">
-        <div className="bg-[url('/bg.jpg')] bg-cover opacity-40 fixed -z-10 inset-0" />
+        <div className="bg-[url('/bg.jpg')] bg-cover opacity-40 dark:opacity-10 fixed -z-10 inset-0" />
 
         <Providers>
           <Header />
           <main className="min-h-screen">{children}</main>
 
-          <footer className="bg-orange-50/80 py-8 border-t border-orange-100">
-            <div className="mx-auto px-4 text-center text-gray-500 text-sm">
+          <footer className="bg-orange-50/80 dark:bg-gray-900/80 py-8 border-t border-orange-100 dark:border-gray-800">
+            <div className="mx-auto px-4 text-center text-gray-500 dark:text-gray-400 text-sm">
               <p>Made with 🧡 by Devesh</p>
             </div>
           </footer>

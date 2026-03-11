@@ -137,13 +137,13 @@ export default function JournalEntryPage() {
         <Button
           variant="ghost"
           onClick={() => router.back()}
-          className="rounded-xl text-gray-600"
+          className="rounded-xl text-gray-600 dark:text-gray-400"
         >
           <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
         </Button>
         <div className="flex gap-2">
           {!editing && (
-            <Button variant="outline" size="sm" onClick={startEditing} className="bg-transparent hover:bg-orange-50 border-orange-200">
+            <Button variant="outline" size="sm" onClick={startEditing} className="bg-transparent hover:bg-orange-50 dark:hover:bg-orange-950 border-orange-200 dark:border-orange-800">
               <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
             </Button>
           )}
@@ -153,7 +153,7 @@ export default function JournalEntryPage() {
                 <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200">
+            <AlertDialogContent className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700">
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
                 <AlertDialogDescription>
@@ -185,14 +185,14 @@ export default function JournalEntryPage() {
           <select
             value={editCollectionId}
             onChange={(e) => setEditCollectionId(e.target.value)}
-            className="w-full h-10 rounded-sm border border-gray-200 bg-transparent shadow md px-3 text-sm text-gray-700"
+            className="w-full h-10 rounded-sm border border-gray-200 dark:border-gray-700 bg-transparent shadow md px-3 text-sm text-gray-700 dark:text-gray-300"
           >
-            <option value="">No collection</option>
+            <option value="" className="dark:bg-gray-900">No collection</option>
             {collections?.map((col) => (
-              <option className="bg-white/80 backdrop-blur-sm" key={col.id} value={col.id}>{col.name}</option>
+              <option className="bg-white/80 dark:bg-gray-900 backdrop-blur-sm" key={col.id} value={col.id}>{col.name}</option>
             ))}
           </select>
-          <div className="bg-transparent shadow md backdrop-blur-sm rounded-2xl border border-gray-200 overflow-hidden min-h-[300px]">
+          <div className="bg-transparent shadow md backdrop-blur-sm rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden min-h-[300px]">
             <TipTapEditor content={editContent} onChange={setEditContent} />
           </div>
           <div className="flex justify-end gap-3">
@@ -215,28 +215,28 @@ export default function JournalEntryPage() {
           <CardContent className="p-0">
             <Tabs defaultValue="entry" className="w-full">
               <div className="px-6 pt-5 pb-0">
-                <TabsList className="bg-gray-100/80 rounded-lg p-1">
-                  <TabsTrigger value="entry" className="rounded-sm px-5 data-[state=active]:bg-orange-100 data-[state=active]:shadow-sm">
+                <TabsList className="bg-gray-100/80 dark:bg-gray-800/80 rounded-lg p-1">
+                  <TabsTrigger value="entry" className="rounded-sm px-5 data-[state=active]:bg-orange-100 dark:data-[state=active]:bg-orange-900/50 data-[state=active]:shadow-sm">
                     Entry
                   </TabsTrigger>
-                  <TabsTrigger value="analysis" className="rounded-sm px-5 data-[state=active]:bg-orange-100 data-[state=active]:shadow-sm">
+                  <TabsTrigger value="analysis" className="rounded-sm px-5 data-[state=active]:bg-orange-100 dark:data-[state=active]:bg-orange-900/50 data-[state=active]:shadow-sm">
                     Analysis
                   </TabsTrigger>
                 </TabsList>
               </div>
 
               <TabsContent value="entry" className="px-6 pb-6 pt-4 mt-0">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">{entry.title}</h1>
-                <div className="flex items-center gap-3 text-sm text-gray-400 mb-6">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{entry.title}</h1>
+                <div className="flex items-center gap-3 text-sm text-gray-400 dark:text-gray-500 mb-6">
                   <span>{date}</span>
                   {collectionName && (
-                    <Badge className="bg-orange-50 text-orange-700 border-orange-200">
+                    <Badge className="bg-orange-50 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800">
                       {collectionName}
                     </Badge>
                   )}
                 </div>
                 <div
-                  className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700"
+                  className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300"
                   dangerouslySetInnerHTML={{ __html: entry.content || "<p>No content</p>" }}
                 />
               </TabsContent>
@@ -247,17 +247,17 @@ export default function JournalEntryPage() {
                     {/* Mood Score — large visual */}
                     {moodScore && (
                       <div>
-                        <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-amber-50 border-4 border-orange-200 shadow-sm">
-                          <span className="text-2xl font-bold text-orange-700">{moodScore}</span>
+                        <div className="relative inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-amber-50 dark:from-orange-900/50 dark:to-amber-900/30 border-4 border-orange-200 dark:border-orange-800 shadow-sm">
+                          <span className="text-2xl font-bold text-orange-700 dark:text-orange-300">{moodScore}</span>
                         </div>
-                        <p className="text-sm text-gray-500 mt-2">Mood Score</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Mood Score</p>
                       </div>
                     )}
 
                     {/* Sentiment Label */}
                     <div className="flex items-center justify-center gap-2">
                       <span className="text-xs font-medium uppercase tracking-wider text-gray-400">Sentiment</span>
-                      <Badge className="bg-orange-50 text-orange-700 border-orange-200 text-sm px-3 py-1 capitalize">
+                      <Badge className="bg-orange-50 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800 text-sm px-3 py-1 capitalize">
                         {entry.sentimentLabel}
                       </Badge>
                     </div>
@@ -270,7 +270,7 @@ export default function JournalEntryPage() {
                           {entry.emotions.map((e) => (
                             <Badge
                               key={e}
-                              className="bg-gradient-to-r from-orange-50 to-amber-50 text-orange-700 border border-orange-200 px-3 py-1 text-sm capitalize shadow-sm"
+                              className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/50 dark:to-amber-900/30 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800 px-3 py-1 text-sm capitalize shadow-sm"
                             >
                               {e}
                             </Badge>

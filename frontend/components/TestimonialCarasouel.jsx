@@ -44,7 +44,7 @@ const testimonials = [
 const TestimonialCarousel = () => {
   return (
     <div className="mt-24 px-5">
-      <h2 className="text-3xl font-bold text-center text-orange-900 mb-12">
+      <h2 className="text-3xl font-bold text-center text-orange-900 dark:text-orange-100 mb-12">
         What Our Writers Say
       </h2>
       <Carousel
@@ -64,17 +64,17 @@ const TestimonialCarousel = () => {
         <CarouselContent>
           {testimonials.map((testimonial, index) => (
             <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
-              <Card className="bg-white/80 backdrop-blur-sm">
+              <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
                 <CardContent className="p-6">
                   <blockquote className="space-y-4">
-                    <p className="text-orange-700 italic">
+                    <p className="text-orange-700 dark:text-orange-300 italic">
                       &quot;{testimonial.text}&quot;
                     </p>
                     <footer>
-                      <div className="font-semibold text-orange-900">
+                      <div className="font-semibold text-orange-900 dark:text-orange-100">
                         {testimonial.author}
                       </div>
-                      <div className="text-sm text-orange-600">
+                      <div className="text-sm text-orange-600 dark:text-orange-400">
                         {testimonial.role}
                       </div>
                     </footer>

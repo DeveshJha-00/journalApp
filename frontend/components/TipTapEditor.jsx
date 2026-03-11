@@ -27,7 +27,7 @@ export default function TipTapEditor({ content, onChange }) {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm max-w-none min-h-[350px] p-4 focus:outline-none prose-headings:text-gray-900 prose-p:text-gray-700",
+          "prose prose-sm max-w-none min-h-[350px] p-4 focus:outline-none prose-headings:text-gray-900 dark:prose-headings:text-gray-100 prose-p:text-gray-700 dark:prose-p:text-gray-300 dark:prose-invert",
       },
     },
   });
@@ -44,7 +44,7 @@ export default function TipTapEditor({ content, onChange }) {
   return (
     <div>
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 p-2 border-b border-gray-100 flex-wrap">
+      <div className="flex items-center gap-0.5 p-2 border-b border-gray-100 dark:border-gray-700 flex-wrap">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
@@ -67,7 +67,7 @@ export default function TipTapEditor({ content, onChange }) {
           <UnderlineIcon className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-200 mx-1" />
+        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
@@ -98,7 +98,7 @@ export default function TipTapEditor({ content, onChange }) {
           <Quote className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-200 mx-1" />
+        <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -132,8 +132,8 @@ function ToolbarButton({ children, onClick, active, disabled, title }) {
       title={title}
       className={`p-1.5 rounded-md transition-colors ${
         active
-          ? "bg-orange-100 text-orange-700"
-          : "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+          ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300"
+          : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200"
       } ${disabled ? "opacity-30 cursor-not-allowed" : ""}`}
     >
       {children}

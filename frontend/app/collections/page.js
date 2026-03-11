@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/lib/auth";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { collectionAPI } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,7 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
-export default function CollectionsPage() {
+function CollectionsContent() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -117,15 +117,15 @@ export default function CollectionsPage() {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className={`h-10 border-gray-200 bg-transparent shadow md px-3 text-sm font-semibold ${
-                  dateFilter ? "text-gray-900" : "text-gray-500"
+                className={`h-10 border-gray-200 dark:border-gray-700 bg-transparent shadow md px-3 text-sm font-semibold ${
+                  dateFilter ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
                 }`}
               >
-                <CalendarIcon className="h-4 w-4 mr-2 text-gray-600" />
+                <CalendarIcon className="h-4 w-4 mr-2 text-gray-600 dark:text-gray-400" />
                 {dateFilter ? format(dateFilter, "MMM d, yyyy") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 bg-white/70 backdrop-blur-sm border border-gray-200" align="start">
+            <PopoverContent className="w-auto p-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700" align="start">
               <Calendar
                 mode="single"
                 selected={dateFilter}
@@ -170,6 +170,14 @@ export default function CollectionsPage() {
   );
 }
 
+export default function CollectionsPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8"><Skeleton className="h-96 rounded-2xl" /></div>}>
+      <CollectionsContent />
+    </Suspense>
+  );
+}
+
 function CollectionCard({ collection, onDelete }) {
   const router = useRouter();
 
@@ -186,14 +194,31 @@ function CollectionCard({ collection, onDelete }) {
       onClick={() => router.push(`/collections/${collection.id}`)}
       className="block relative group transition-transform duration-300 hover:-translate-y-1 cursor-pointer"
     >
-      {/* Stack Layer 2 */}
-      <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-sm bg-orange-100/40 border border-orange-100 transition-all duration-300 group-hover:translate-x-3 group-hover:translate-y-3" />
+      {/* Stack Layer 2 (Bottom) */}
+<div className="absolute inset-0 translate-x-2 translate-y-2 rounded-2xl
+  bg-orange-100/40 dark:bg-gray-700/30
+  border border-orange-100 dark:border-gray-700
+  transition-all duration-300
+  group-hover:translate-x-3 group-hover:translate-y-3"
+/>
 
-      {/* Stack Layer 1 */}
-      <div className="absolute inset-0 translate-x-1 translate-y-1 bg-white rounded-sm border border-gray-200 shadow-sm transition-all duration-300 group-hover:translate-x-2 group-hover:translate-y-2" />
+{/* Stack Layer 1 (Middle) */}
+<div className="absolute inset-0 translate-x-1 translate-y-1 rounded-2xl
+  bg-white dark:bg-gray-800
+  border border-gray-200 dark:border-gray-700
+  shadow-sm
+  transition-all duration-300
+  group-hover:translate-x-2 group-hover:translate-y-2"
+/>
 
-      {/* /* Main Card */} 
-        <Card className="relative overflow-hidden border border-gray-200 rounded-sm bg-gradient-to-br from-orange-100 via-orange-50 to-white hover:shadow-xl transition-all duration-300 cursor-pointer">
+{/* Main Card */}
+<Card className="relative overflow-hidden rounded-2xl
+  border border-gray-200 dark:border-gray-700
+  bg-white dark:bg-gray-900
+  hover:shadow-xl
+  transition-all duration-300
+  cursor-pointer"
+>
           
           {/* Left gradient stripe */}
         <div className="absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-orange-400 to-orange-200 rounded-l-2xl" />
@@ -202,12 +227,12 @@ function CollectionCard({ collection, onDelete }) {
           
           {/* Header */}
           <div className="flex items-start mb-2">
-            <h3 className="text-lg font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 group-hover:text-orange-600 transition-colors">
               {collection.name}
             </h3>
 
             {date && (
-              <span className="ml-auto text-sm text-gray-400 whitespace-nowrap">
+              <span className="ml-auto text-sm text-gray-400 dark:text-gray-500 whitespace-nowrap">
                 {date}
               </span>
             )}
@@ -215,7 +240,7 @@ function CollectionCard({ collection, onDelete }) {
 
           {/* Description */}
           {collection.description && (
-            <p className="text-sm text-gray-600 leading-relaxed mt-1 mb-4 line-clamp-2">
+            <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mt-1 mb-4 line-clamp-2">
               {collection.description}
             </p>
           )}
@@ -231,13 +256,13 @@ function CollectionCard({ collection, onDelete }) {
               <AlertDialogTrigger asChild>
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors z-10 cursor-pointer"
+                  className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-colors z-10 cursor-pointer"
                   title="Delete collection"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
               </AlertDialogTrigger>
-              <AlertDialogContent className="bg-white/80 backdrop-blur-sm border border-gray-200" onClick={(e) => e.stopPropagation()}>
+              <AlertDialogContent className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete &quot;{collection.name}&quot;?</AlertDialogTitle>
                   <AlertDialogDescription>
@@ -289,12 +314,12 @@ function CreateCollectionCard() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button className="cursor-pointer rounded-sm border-2 border-dashed border-orange-200 hover:border-orange-400 bg-white/50 hover:bg-orange-50/50 transition-all p-5 flex flex-col items-center justify-center gap-2 min-h-[140px]">
+        <button className="cursor-pointer rounded-sm border-2 border-dashed border-orange-200 dark:border-orange-800 hover:border-orange-400 dark:hover:border-orange-600 bg-white/50 dark:bg-gray-900/50 hover:bg-orange-50/50 dark:hover:bg-orange-950/50 transition-all p-5 flex flex-col items-center justify-center gap-2 min-h-[140px]">
           <Plus className="h-8 w-8 text-orange-400" />
           <span className="text-sm font-medium text-orange-600">New Collection</span>
         </button>
       </DialogTrigger>
-      <DialogContent className="bg-white/70 backdrop-blur-smborder border-gray-200">
+      <DialogContent className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
         <DialogHeader>
           <DialogTitle>Create Collection</DialogTitle>
         </DialogHeader>

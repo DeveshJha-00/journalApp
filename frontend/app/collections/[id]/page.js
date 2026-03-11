@@ -76,7 +76,7 @@ export default function CollectionDetailPage() {
             <AddEntryDialog collectionId={collectionId} existingEntryIds={entries?.map((e) => e.id) || []} />
           </div>
           {collection?.description && (
-            <p className="text-md text-black-500">{collection.description}</p>
+            <p className="text-md text-gray-500 dark:text-gray-400">{collection.description}</p>
           )}
         </div>
       </div>
@@ -173,7 +173,7 @@ function AddEntryDialog({ collectionId, existingEntryIds }) {
           <Plus className="h-3.5 w-3.5 mr-1" /> Add Entry
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white/80 backdrop-blur-sm border border-gray-200 max-w-lg max-h-[80vh] flex flex-col">
+      <DialogContent className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Add Entries to Collection</DialogTitle>
         </DialogHeader>
@@ -221,23 +221,23 @@ function AddEntryDialog({ collectionId, existingEntryIds }) {
                   onClick={() => toggleSelect(entry.id)}
                   className={`w-full text-left p-3 rounded-lg border transition-all cursor-pointer ${
                     isSelected
-                      ? "border-orange-400 bg-orange-50 ring-1 ring-orange-300"
-                      : "border-gray-200  hover:border-orange-200 hover:bg-orange-100/30"
+                      ? "border-orange-400 bg-orange-50 dark:bg-orange-950 ring-1 ring-orange-300 dark:ring-orange-700"
+                      : "border-gray-200 dark:border-gray-700 hover:border-orange-200 dark:hover:border-orange-800 hover:bg-orange-100/30 dark:hover:bg-orange-900/20"
                   }`}
                 >
                   <div className="flex items-start gap-3">
                     <div className={`mt-0.5 flex-shrink-0 h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                      isSelected ? "bg-orange-600 border-orange-600" : "border-gray-300"
+                      isSelected ? "bg-orange-600 border-orange-600" : "border-gray-300 dark:border-gray-600"
                     }`}>
                       {isSelected && <Check className="h-3 w-3 text-white" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm text-gray-900 truncate">{entry.title}</span>
-                        {date && <span className="text-xs text-gray-400 whitespace-nowrap">{date}</span>}
+                        <span className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{entry.title}</span>
+                        {date && <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">{date}</span>}
                       </div>
                       {snippet && (
-                        <p className="text-xs text-gray-500 mt-0.5 truncate">{snippet}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">{snippet}</p>
                       )}
                     </div>
                   </div>
@@ -252,13 +252,13 @@ function AddEntryDialog({ collectionId, existingEntryIds }) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <span className="text-sm text-gray-500">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {selected.length} {selected.length === 1 ? "entry" : "entries"} selected
           </span>
           <div className="flex gap-2">
             <DialogClose asChild>
-              <Button variant="ghost" className="hover:bg-orange-100">Cancel</Button>
+              <Button variant="ghost" className="hover:bg-orange-100 dark:hover:bg-orange-900/50">Cancel</Button>
             </DialogClose>
             <Button
               onClick={handleAdd}

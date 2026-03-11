@@ -128,8 +128,8 @@ export default function NewJournalPage() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`w-full h-10 justify-between bg-transparent border-gray-200 px-3 font-medium ${
-                      collectionId ? "text-gray-900" : "text-gray-500"
+                    className={`w-full h-10 justify-between bg-transparent border-gray-200 dark:border-gray-700 px-3 font-medium ${
+                      collectionId ? "text-gray-900 dark:text-gray-100" : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
                     {collectionId
@@ -142,7 +142,7 @@ export default function NewJournalPage() {
 
                 <DropdownMenuContent
                   align="start"
-                  className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto bg-white/80 backdrop-blur-sm border border-gray-200"
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700"
                 >
                   <DropdownMenuItem onClick={() => setCollectionId("")}>
                     No collection
@@ -164,7 +164,7 @@ export default function NewJournalPage() {
         </div>
 
         {/* TipTap Editor */}
-        <div className="backdrop-blur-sm rounded-sm border border-gray-200 overflow-hidden min-h-[400px]">
+        <div className="backdrop-blur-sm rounded-sm border border-gray-200 dark:border-gray-700 overflow-hidden min-h-[400px]">
           <TipTapEditor content={content} onChange={setContent} />
         </div>
 
@@ -173,7 +173,7 @@ export default function NewJournalPage() {
           <Button
             variant="outline"
             onClick={handleSaveDraft}
-            className="rounded-xl border-orange-200 hover:bg-orange-50"
+            className="rounded-xl border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-950"
           >
             <Save className="h-4 w-4 mr-1.5" /> Save Draft
           </Button>
@@ -210,11 +210,11 @@ function InlineCreateCollection() {
   return (
     <Dialog open={open} onOpenChange={setOpen} className="bg-transparent">
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon" className="cursor-pointer rounded-md h-10 w-10 border-orange-200 hover:bg-orange-50">
+        <Button variant="outline" size="icon" className="cursor-pointer rounded-md h-10 w-10 border-orange-200 dark:border-orange-800 hover:bg-orange-50 dark:hover:bg-orange-950">
           <Plus className="h-4 w-4 text-orange-600" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="bg-white/70 backdrop-blur-smborder border-gray-200">
+      <DialogContent className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
         <DialogHeader className="mb-5">
           <DialogTitle>Quick Create Collection</DialogTitle>
         </DialogHeader>

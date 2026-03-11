@@ -162,8 +162,8 @@ export default function DashboardPage() {
                 </form>
               ) : (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-lg text-gray-500">
-                    <span className="font-medium text-gray-700">{currentUser.userName}</span>
+                  <span className="text-lg text-gray-500 dark:text-gray-400">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{currentUser.userName}</span>
                   </span>
                   <button
                     onClick={() => {
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="bg-white/70 backdrop-blur-sm border border-gray-200">
+          <SelectContent className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border border-gray-200 dark:border-gray-700">
             <SelectItem value="7d">Last 7 Days</SelectItem>
             <SelectItem value="15d">Last 15 Days</SelectItem>
             <SelectItem value="30d">Last 30 Days</SelectItem>
@@ -203,7 +203,7 @@ export default function DashboardPage() {
               <CardContent className="pt-2 pb-2">
                 <div className="flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-orange-600" />
-                  <p className="text-2x1 font-semibold text-gray-800">
+                  <p className="text-2x1 font-semibold text-gray-800 dark:text-gray-200">
                     Total Entries
                   </p>
                 </div>
@@ -212,11 +212,11 @@ export default function DashboardPage() {
                   <Skeleton className="h-7 w-12 mt-2" />
                 ) : (
                   <>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                    <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">
                       {analytics?.totalEntries ?? 0}
                     </p>
 
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       ~ {analytics?.entriesPerDay?.toFixed(1) ?? "0"} entries per day
                     </p>
                   </>
@@ -229,7 +229,7 @@ export default function DashboardPage() {
             <CardContent className="pt-2 pb-2">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-600" />
-                <p className="text-2x1 font-semibold text-gray-800">
+                <p className="text-2x1 font-semibold text-gray-800 dark:text-gray-200">
                   Average Mood
                 </p>
               </div>
@@ -238,10 +238,10 @@ export default function DashboardPage() {
                 <Skeleton className="h-7 w-16 mt-2" />
               ) : (
                 <>
-                  <p className="text-3xl font-bold text-gray-900 mt-1">
-                    {analytics?.avgMood?.toFixed(1) ?? "—"} / 10
+                  <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">
+                    {analytics?.avgMood?.toFixed(1) ?? "\u2014"} / 10
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     Overall mood score
                   </p>
                 </>
@@ -254,7 +254,7 @@ export default function DashboardPage() {
             <CardContent className="pt-2 pb-2">
               <div className="flex items-center gap-2">
                 <Smile className="h-4 w-4 text-green-600" />
-                <p className="text-2x1 font-semibold text-gray-800">
+                <p className="text-2x1 font-semibold text-gray-800 dark:text-gray-200">
                   Mood Summary
                 </p>
               </div>
@@ -262,7 +262,7 @@ export default function DashboardPage() {
               {analyticsLoading ? (
                 <Skeleton className="h-5 w-40 mt-2" />
               ) : (
-                <p className="text-3x1 font-bold text-gray-700 mt-2 leading-relaxed">
+                <p className="text-3x1 font-bold text-gray-700 dark:text-gray-300 mt-2 leading-relaxed">
                   {mood?.text ?? "Start journaling!"}
                 </p>
               )}
@@ -310,15 +310,15 @@ export default function DashboardPage() {
                     aria-label="Toggle sentiment analysis"
                     className={`px-6 py-2 font-medium rounded-full border transition-colors ${
                       currentUser?.sentimentAnalysis
-                        ? "bg-orange-100 text-orange-700 border-orange-200 data-[state=on]:bg-orange-100 data-[state=on]:text-orange-700"
-                        : "bg-gray-100 text-gray-500 border-gray-200"
+                        ? "bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800 data-[state=on]:bg-orange-100 dark:data-[state=on]:bg-orange-900/50 data-[state=on]:text-orange-700 dark:data-[state=on]:text-orange-300"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700"
                     }`}
                   >
                     {currentUser?.sentimentAnalysis ? "On" : "Off"}
                   </Toggle>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {currentUser?.sentimentAnalysis
                   ? "Your journal entries are being analyzed biweekly."
                   : "Turn on to receive biweekly mental health reports."}
@@ -364,16 +364,16 @@ function ReportCard({ report }) {
     <Dialog>
 
       <DialogTrigger asChild>
-        <button className="cursor-pointer w-full text-left p-3 rounded-xl border-2 shadow md hover:bg-orange-50/50 transition-colors">
+        <button className="cursor-pointer w-full text-left p-3 rounded-xl border-2 shadow md hover:bg-orange-50/50 dark:hover:bg-gray-800/50 transition-colors">
           <div className="flex items-center justify-between mb-1">
-            <span className="font-medium text-gray-900">{date}</span>
+            <span className="font-medium text-gray-900 dark:text-gray-100">{date}</span>
             {report.avgMood && (
-              <Badge variant="secondary" className="bg-orange-50 text-orange-700 text-sm">
+              <Badge variant="secondary" className="bg-orange-50 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 text-sm">
                 Mood: {report.avgMood.toFixed(1)}
               </Badge>
             )}
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             {report.totalEntries} entries analyzed
           </p>
           {report.topEmotions?.length > 0 && (
@@ -388,12 +388,12 @@ function ReportCard({ report }) {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto bg-white/80 backdrop-blur-sm border border-gray-200 ">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 ">
         <DialogHeader>
-          <DialogTitle>Report — {date}</DialogTitle>
+          <DialogTitle>Report \u2014 {date}</DialogTitle>
         </DialogHeader>
         <div
-          className="prose prose-sm max-w-none prose-headings:text-orange-800"
+          className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-orange-800 dark:prose-headings:text-orange-300"
           dangerouslySetInnerHTML={{ __html: report.reportContent }}
         />
         <div className="mt-6 flex justify-end">

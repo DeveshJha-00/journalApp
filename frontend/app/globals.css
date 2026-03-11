@@ -160,12 +160,30 @@
   color: #6b7280;
   font-style: italic;
 }
+.dark .tiptap blockquote {
+  border-left-color: #4b5563;
+  color: #9ca3af;
+}
 .tiptap p.is-editor-empty:first-child::before {
   color: #9ca3af;
   content: attr(data-placeholder);
   float: left;
   height: 0;
   pointer-events: none;
+}
+.dark .tiptap p.is-editor-empty:first-child::before {
+  color: #6b7280;
+}
+
+/* Recharts dark mode */
+.dark .recharts-cartesian-grid line {
+  stroke: #374151;
+}
+.dark .recharts-text {
+  fill: #9ca3af;
+}
+.dark .recharts-legend-item-text {
+  color: #d1d5db !important;
 }
 
 @layer base {

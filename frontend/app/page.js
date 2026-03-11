@@ -90,37 +90,37 @@ export default function Home() {
     <div className="relative container mx-auto px-4 pt-16 pb-16">
 
       {/* ===== HERO ===== */}
-        <div className="max-w-5xl mx-auto text-center text-orange-800 space-y-8">
+        <div className="max-w-5xl mx-auto text-center text-orange-800 dark:text-orange-200 space-y-8">
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-            <span className="bg-gradient-to-r from-orange-500 to-orange-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-orange-500 to-orange-700 dark:from-orange-400 dark:to-orange-600 bg-clip-text text-transparent">
             Reflect. Record. Understand.
             </span>
           </h1>
-          <p className="text-lg md:text-xl text-orange-800 mb-8 max-w-4xl mx-auto">
+          <p className="text-lg md:text-xl text-orange-800 dark:text-orange-200 mb-8 max-w-4xl mx-auto">
             Capture your thoughts, track your moods, and build a mindful archive of your inner world
             <br/>All within a thoughtfully designed journaling space
           </p>
 
           <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-t from-orange-50 via-transparent to-transparent pointer-events-none z-10" />
-          <div className="bg-white rounded-2xl p-4 max-full mx-auto">
-            <div className="border-b border-orange-100 pb-4 mb-4 flex items-center justify-between">
+          <div className="absolute inset-0 bg-gradient-to-t from-orange-50 dark:from-gray-950 via-transparent to-transparent pointer-events-none z-10" />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-4 max-full mx-auto">
+            <div className="border-b border-orange-100 dark:border-gray-700 pb-4 mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-orange-600"/>
-                <span className="text-orange-900 font-medium">
+                <span className="text-orange-900 dark:text-orange-100 font-medium">
                   Today&rsquo;s Entry
                 </span>
               </div>
               <div className="flex gap-2">
-                <div className="h-3 w-3 rounded-full bg-orange-200" />
-                <div className="h-3 w-3 rounded-full bg-orange-300" />
-                <div className="h-3 w-3 rounded-full bg-orange-400" />
+                <div className="h-3 w-3 rounded-full bg-orange-200 dark:bg-orange-800" />
+                <div className="h-3 w-3 rounded-full bg-orange-300 dark:bg-orange-700" />
+                <div className="h-3 w-3 rounded-full bg-orange-400 dark:bg-orange-600" />
               </div>
             </div>
             <div className="space-y-4 p-4">
-              <Skeleton className="h-4 bg-orange-100 rounded w-3/4" />
-              <Skeleton className="h-4 bg-orange-100 rounded w-full" />
-              <Skeleton className="h-4 bg-orange-100 rounded w-2/3" />
+              <Skeleton className="h-4 bg-orange-100 dark:bg-gray-700 rounded w-3/4" />
+              <Skeleton className="h-4 bg-orange-100 dark:bg-gray-700 rounded w-full" />
+              <Skeleton className="h-4 bg-orange-100 dark:bg-gray-700 rounded w-2/3" />
             </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function Home() {
             <Link href="#features">
               <Button
                 variant="outline"
-                className="px-8 py-6 rounded-full border-orange-600 text-orange-600 hover:bg-orange-100"
+                className="px-8 py-6 rounded-full border-orange-600 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-950"
               >
                 Learn More
               </Button>
@@ -150,11 +150,11 @@ export default function Home() {
                 className="shadow-lg"
               >
                 <CardContent className="p-6">
-                  <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center mb-4">
-                    <f.icon className="h-6 w-6 text-orange-600" />
+                  <div className="h-12 w-12 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mb-4">
+                    <f.icon className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                   </div>
-                  <h3 className="font-semibold text-xl text-orange-900 mb-2">{f.title}</h3>
-                  <p className="text-orange-600 text-sm leading-relaxed">
+                  <h3 className="font-semibold text-xl text-orange-900 dark:text-orange-100 mb-2">{f.title}</h3>
+                  <p className="text-orange-600 dark:text-orange-300 text-sm leading-relaxed">
                     {f.description}
                   </p>
                 </CardContent>
@@ -168,7 +168,7 @@ export default function Home() {
 
       {/* ===== FAQ ===== */}
         <div className="mt-12">
-          <h2 className="text-3xl font-bold text-center text-orange-900 mb-12">
+          <h2 className="text-3xl font-bold text-center text-orange-900 dark:text-orange-100 mb-12">
             Frequently Asked Questions
           </h2>
           <Accordion type="single" collapsible className="w-full mx-auto">
@@ -177,10 +177,10 @@ export default function Home() {
                 key={i}
                 value={`faq-${i}`}
               >
-                <AccordionTrigger className="text-orange-900 text-lg">
+                <AccordionTrigger className="text-orange-900 dark:text-orange-100 text-lg">
                   {faq.q}
                 </AccordionTrigger>
-                <AccordionContent className="text-orange-600">
+                <AccordionContent className="text-orange-600 dark:text-orange-300">
                   {faq.a}
                 </AccordionContent>
               </AccordionItem>
@@ -190,11 +190,11 @@ export default function Home() {
 
 
       {/* ===== CTA ===== */}
-        <div className="mt-15 bg-gradient-to-r from-orange-10 to-amber-100">
-          <h2 className="text-3xl text-orange-900 font-bold mb-6">
+        <div className="mt-15 bg-gradient-to-r from-orange-10 to-amber-100 dark:from-gray-900 dark:to-gray-800 dark:rounded-2xl dark:p-8">
+          <h2 className="text-3xl text-orange-900 dark:text-orange-100 font-bold mb-6">
             Ready to start your Journaling Journey?
           </h2>
-          <p className="text-orange-700 mb-8 text-lg">
+          <p className="text-orange-700 dark:text-orange-300 mb-8 text-lg">
             Join thousands who are building better self-awareness, one entry at a time.
           </p>
           <Link href="/auth">

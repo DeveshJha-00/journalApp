@@ -64,31 +64,35 @@ public class AnalyticsService {
             return cached;
         }
 
-        // Filter entries within range that have sentiment data
+        // Get all entries within range
         LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
-        List<JournalEntry> entries = user.getJournalEntryList().stream()
+        List<JournalEntry> allEntriesInRange = user.getJournalEntryList().stream()
                 .filter(e -> e.getDate() != null && e.getDate().isAfter(cutoff))
-                .filter(e -> e.getSentimentScore() != null && e.getSentimentAnalyzedAt() != null)
                 .sorted(Comparator.comparing(JournalEntry::getDate))
                 .collect(Collectors.toList());
 
-        int totalEntries = entries.size();
+        int totalEntries = allEntriesInRange.size();
 
-        // Average mood
+        // Entries per day (based on ALL entries, not just sentiment-analyzed)
+        double entriesPerDay = days > 0 ? Math.round((double) totalEntries / days * 10.0) / 10.0 : 0.0;
+
+        // Filter to only entries with sentiment data for mood metrics
+        List<JournalEntry> sentimentEntries = allEntriesInRange.stream()
+                .filter(e -> e.getSentimentScore() != null && e.getSentimentAnalyzedAt() != null)
+                .collect(Collectors.toList());
+
+        // Average mood (from sentiment-analyzed entries only)
         double avgMood = 0.0;
-        if (totalEntries > 0) {
-            double avgSentiment = entries.stream()
+        if (!sentimentEntries.isEmpty()) {
+            double avgSentiment = sentimentEntries.stream()
                     .mapToDouble(JournalEntry::getSentimentScore)
                     .average()
                     .orElse(0.0);
             avgMood = sentimentToMood(avgSentiment);
         }
 
-        // Entries per day
-        double entriesPerDay = days > 0 ? Math.round((double) totalEntries / days * 10.0) / 10.0 : 0.0;
-
-        // Mood timeline — group by date
-        Map<LocalDate, List<JournalEntry>> byDate = entries.stream()
+        // Mood timeline — group sentiment entries by date
+        Map<LocalDate, List<JournalEntry>> byDate = sentimentEntries.stream()
                 .collect(Collectors.groupingBy(
                         e -> e.getDate().toLocalDate(),
                         TreeMap::new,
@@ -110,7 +114,7 @@ public class AnalyticsService {
                 .collect(Collectors.toList());
 
         // Top emotions — frequency sorted, top 5
-        List<String> topEmotions = entries.stream()
+        List<String> topEmotions = sentimentEntries.stream()
                 .filter(e -> e.getEmotions() != null)
                 .flatMap(e -> e.getEmotions().stream())
                 .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
@@ -121,7 +125,7 @@ public class AnalyticsService {
                 .collect(Collectors.toList());
 
         // Top keywords — frequency sorted, top 5
-        List<String> topKeywords = entries.stream()
+        List<String> topKeywords = sentimentEntries.stream()
                 .filter(e -> e.getKeywords() != null)
                 .flatMap(e -> e.getKeywords().stream())
                 .collect(Collectors.groupingBy(s -> s.toLowerCase(), Collectors.counting()))

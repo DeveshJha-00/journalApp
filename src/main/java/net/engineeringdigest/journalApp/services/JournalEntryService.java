@@ -113,6 +113,9 @@ public class JournalEntryService {
         String recentEntriesKey = redisService.buildUserRecentEntriesKey(user.getId().toHexString());
         redisService.delete(recentEntriesKey);
 
+        // Invalidate analytics cache so dashboard refreshes
+        redisService.deletePattern("analytics:" + user.getId().toHexString() + ":*");
+
         // Invalidate collection entries cache if entry belongs to a collection
         if (saved.getCollectionId() != null) {
             String collectionEntriesKey = redisService.buildCollectionEntriesKey(saved.getCollectionId().toHexString());
@@ -131,6 +134,8 @@ public class JournalEntryService {
             if (removed){
                 userService.saveUser(user);
                 journalEntryRepository.deleteById(id);
+                // Invalidate analytics cache so dashboard refreshes
+                redisService.deletePattern("analytics:" + user.getId().toHexString() + ":*");
             }
         }catch (Exception e){
             System.out.println(e);
