@@ -28,6 +28,9 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private AuthCookieService authCookieService;
+
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
@@ -70,8 +73,10 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
             // Generate JWT token
             String jwt = jwtUtil.generateToken(user.getUserName());
 
-            // Redirect to frontend with token
-            String redirectUrl = frontendUrl + "/auth/callback?token=" + jwt;
+            // Store JWT in an HttpOnly cookie so it is not exposed in the redirect URL.
+            authCookieService.addJwtCookie(response, jwt);
+
+            String redirectUrl = frontendUrl + "/auth/callback?oauth=success";
             log.info("OAuth login successful, redirecting to frontend for user: {}", user.getUserName());
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 

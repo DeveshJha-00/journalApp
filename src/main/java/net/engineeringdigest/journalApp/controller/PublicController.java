@@ -1,12 +1,14 @@
 package net.engineeringdigest.journalApp.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import net.engineeringdigest.journalApp.config.AuthCookieService;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.filter.JwtFilter;
 import net.engineeringdigest.journalApp.services.UserDetailsAuthServiceImpl;
 import net.engineeringdigest.journalApp.services.UserService;
 import net.engineeringdigest.journalApp.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +16,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/public")
@@ -28,6 +32,8 @@ public class PublicController {
     private UserDetailsAuthServiceImpl userDetailsAuthService;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private AuthCookieService authCookieService;
 
 
     @GetMapping("/health-check")
@@ -36,8 +42,16 @@ public class PublicController {
     }
 
     @PostMapping("/signup")
-    public void signup(@RequestBody User user) {
-        userService.saveNewUser(user);
+    public ResponseEntity<String> signup(@RequestBody User user) {
+        try {
+            userService.saveNewUser(user);
+            return new ResponseEntity<>("User created", HttpStatus.CREATED);
+        } catch (DuplicateKeyException e) {
+            log.warn("Signup rejected because username already exists: {}", user.getUserName());
+            return new ResponseEntity<>("Username already exists", HttpStatus.CONFLICT);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 
 
@@ -55,6 +69,12 @@ public class PublicController {
             return new ResponseEntity<>("Incorrect username or password", HttpStatus.UNAUTHORIZED);
         }
 
+    }
+
+    @PostMapping("/logout-cookie")
+    public ResponseEntity<Void> clearOAuthCookie(HttpServletResponse response) {
+        authCookieService.clearJwtCookie(response);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 

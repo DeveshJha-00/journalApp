@@ -5,10 +5,8 @@ import net.engineeringdigest.journalApp.dto.JournalEntryResponseDTO;
 import net.engineeringdigest.journalApp.dto.DTOMapper;
 import net.engineeringdigest.journalApp.entity.Collection;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
-import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.services.CollectionService;
 import net.engineeringdigest.journalApp.services.JournalEntryService;
-import net.engineeringdigest.journalApp.services.UserService;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -32,9 +32,6 @@ public class JournalEntryController {
     private JournalEntryService journalEntryService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private CollectionService collectionService;
 
     @Autowired
@@ -45,15 +42,18 @@ public class JournalEntryController {
     public ResponseEntity<List<JournalEntryResponseDTO>> getAllEntriesOfUser(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
-        User user = userService.findByUsername(userName);
-        List<JournalEntry> journalEntriesofUser = user.getJournalEntryList();
+        List<JournalEntry> journalEntriesofUser = journalEntryService.getEntriesByUserName(userName);
         if (journalEntriesofUser!=null && !journalEntriesofUser.isEmpty()){
+            Set<ObjectId> collectionIds = journalEntriesofUser.stream()
+                    .map(JournalEntry::getCollectionId)
+                    .filter(id -> id != null)
+                    .collect(Collectors.toSet());
+            Map<ObjectId, String> collectionNames = collectionService.getCollectionNamesByIds(collectionIds);
             List<JournalEntryResponseDTO> responseDTOs = journalEntriesofUser.stream()
                     .map(entry -> {
                         String collectionName = null;
                         if (entry.getCollectionId() != null) {
-                            Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
-                            collectionName = collection.map(Collection::getName).orElse(null);
+                            collectionName = collectionNames.get(entry.getCollectionId());
                         }
                         return dtoMapper.toResponseDTO(entry, collectionName);
                     })
@@ -67,20 +67,16 @@ public class JournalEntryController {
     public ResponseEntity<JournalEntryResponseDTO> getEntryById(@PathVariable ObjectId targetId){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
-        User user = userService.findByUsername(userName);
-        List<JournalEntry> collect = user.getJournalEntryList().stream().filter(x -> x.getId().equals(targetId)).collect(Collectors.toList());
-        if (!collect.isEmpty()){
-            Optional<JournalEntry> journalEntry =  journalEntryService.getEntryById(targetId);
-            if (journalEntry.isPresent()){
-                JournalEntry entry = journalEntry.get();
-                String collectionName = null;
-                if (entry.getCollectionId() != null) {
-                    Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
-                    collectionName = collection.map(Collection::getName).orElse(null);
-                }
-                JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
-                return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+        Optional<JournalEntry> journalEntry =  journalEntryService.getEntryByIdForUser(targetId, userName);
+        if (journalEntry.isPresent()){
+            JournalEntry entry = journalEntry.get();
+            String collectionName = null;
+            if (entry.getCollectionId() != null) {
+                Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
+                collectionName = collection.map(Collection::getName).orElse(null);
             }
+            JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
@@ -139,24 +135,19 @@ public class JournalEntryController {
     public ResponseEntity<JournalEntryResponseDTO> updateEntry(@PathVariable ObjectId targetId, @Valid @RequestBody JournalEntryRequestDTO entryRequestDTO){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
-        User user = userService.findByUsername(userName);
-        List<JournalEntry> collect = user.getJournalEntryList().stream().filter(x -> x.getId().equals(targetId)).collect(Collectors.toList());
-        if (!collect.isEmpty()){
-            Optional<JournalEntry> journalEntry =  journalEntryService.getEntryById(targetId);
-            if (journalEntry.isPresent()){
-                JournalEntry entry = journalEntry.get();
-                dtoMapper.updateEntityFromDTO(entry, entryRequestDTO);
-                // journalEntryService.saveEntry(entry, userName);
-                journalEntryService.updateEntry(entry, userName);
+        Optional<JournalEntry> journalEntry =  journalEntryService.getEntryByIdForUser(targetId, userName);
+        if (journalEntry.isPresent()){
+            JournalEntry entry = journalEntry.get();
+            dtoMapper.updateEntityFromDTO(entry, entryRequestDTO);
+            journalEntryService.updateEntry(entry, userName);
 
-                String collectionName = null;
-                if (entry.getCollectionId() != null) {
-                    Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
-                    collectionName = collection.map(Collection::getName).orElse(null);
-                }
-                JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
-                return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+            String collectionName = null;
+            if (entry.getCollectionId() != null) {
+                Optional<Collection> collection = collectionService.getCollectionById(entry.getCollectionId());
+                collectionName = collection.map(Collection::getName).orElse(null);
             }
+            JournalEntryResponseDTO responseDTO = dtoMapper.toResponseDTO(entry, collectionName);
+            return new ResponseEntity<>(responseDTO, HttpStatus.OK);
         }
 
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);

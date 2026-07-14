@@ -3,6 +3,7 @@ package net.engineeringdigest.journalApp.service;
 import net.engineeringdigest.journalApp.dto.AnalyticsResponseDTO;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
+import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
 import net.engineeringdigest.journalApp.services.AnalyticsService;
 import net.engineeringdigest.journalApp.services.RedisService;
 import org.bson.types.ObjectId;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -25,6 +27,9 @@ class AnalyticsServiceTests {
 
     @Mock
     private RedisService redisService;
+
+    @Mock
+    private JournalEntryRepository journalEntryRepository;
 
     @InjectMocks
     private AnalyticsService analyticsService;
@@ -37,13 +42,18 @@ class AnalyticsServiceTests {
         when(redisService.get(eq("analytics:" + userId.toHexString() + ":all"), eq(AnalyticsResponseDTO.class)))
                 .thenReturn(null);
 
+        JournalEntry oldEntry = entry(userId, LocalDateTime.now().minusDays(120), 0.2);
+        JournalEntry recentEntry = entry(userId, LocalDateTime.now().minusDays(10), -0.2);
+
+        when(journalEntryRepository.findByUserIdAndDateAfterOrderByDateAsc(eq(userId), any(LocalDateTime.class)))
+                .thenReturn(Collections.singletonList(recentEntry));
+        when(journalEntryRepository.findByUserIdOrderByDateAsc(userId))
+                .thenReturn(Arrays.asList(oldEntry, recentEntry));
+
         User user = User.builder()
                 .id(userId)
                 .userName("Ashu")
-                .journalEntryList(Arrays.asList(
-                        entry(LocalDateTime.now().minusDays(120), 0.2),
-                        entry(LocalDateTime.now().minusDays(10), -0.2)
-                ))
+                .journalEntryList(Arrays.asList(oldEntry, recentEntry))
                 .roles(Collections.singletonList("USER"))
                 .build();
 
@@ -55,9 +65,10 @@ class AnalyticsServiceTests {
         assertEquals(2, allTime.getMoodTimeline().size());
     }
 
-    private JournalEntry entry(LocalDateTime date, double sentimentScore) {
+    private JournalEntry entry(ObjectId userId, LocalDateTime date, double sentimentScore) {
         JournalEntry entry = new JournalEntry();
         entry.setId(new ObjectId());
+        entry.setUserId(userId);
         entry.setTitle("Entry");
         entry.setContent("Content");
         entry.setDate(date);

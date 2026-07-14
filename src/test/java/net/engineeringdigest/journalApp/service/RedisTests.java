@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
@@ -77,6 +78,18 @@ class RedisTests {
     @Test
     void buildUserProfileKey_shouldAppendPrefix() {
         assertEquals("user:profile:123", redisService.buildUserProfileKey("123"));
+    }
+
+    @Test
+    void get_shouldSkipRedisTemporarily_afterConnectionFailure() {
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get("test:key"))
+                .thenThrow(new RedisConnectionFailureException("Redis unavailable"));
+
+        assertNull(redisService.get("test:key", Dummy.class));
+        assertNull(redisService.get("test:key", Dummy.class));
+
+        verify(valueOperations, times(1)).get("test:key");
     }
 
     static class Dummy {

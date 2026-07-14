@@ -1,24 +1,18 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
+import { authAPI } from "@/lib/api";
 
 const AuthContext = createContext(null);
+const COOKIE_AUTH_TOKEN = "__cookie_auth__";
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState(() => getInitialToken());
+  const [isLoading] = useState(false);
   const router = useRouter();
   const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const stored = localStorage.getItem("token");
-    if (stored) {
-      setToken(stored);
-    }
-    setIsLoading(false);
-  }, []);
 
   const login = useCallback((jwt) => {
     localStorage.setItem("token", jwt);
@@ -27,20 +21,47 @@ export function AuthProvider({ children }) {
     router.push("/dashboard");
   }, [router, queryClient]);
 
-  const logout = useCallback(() => {
+  const loginWithCookie = useCallback(() => {
     localStorage.removeItem("token");
+    localStorage.setItem("authMode", "cookie");
+    setToken(COOKIE_AUTH_TOKEN);
+    queryClient.clear();
+    router.push("/dashboard");
+  }, [router, queryClient]);
+
+  const logout = useCallback(async () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("authMode");
     setToken(null);
     queryClient.clear();
+    try {
+      await authAPI.clearOAuthCookie();
+    } catch {
+      // Logout is client-side only; JWT revocation is intentionally not implemented.
+    }
     router.push("/");
   }, [router, queryClient]);
 
   const isAuthenticated = !!token;
 
   return (
-    <AuthContext.Provider value={{ token, isAuthenticated, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ token, isAuthenticated, isLoading, login, loginWithCookie, logout }}>
       {children}
     </AuthContext.Provider>
   );
+}
+
+function getInitialToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const stored = localStorage.getItem("token");
+  if (stored) {
+    return stored;
+  }
+
+  return localStorage.getItem("authMode") === "cookie" ? COOKIE_AUTH_TOKEN : null;
 }
 
 export function useAuth() {

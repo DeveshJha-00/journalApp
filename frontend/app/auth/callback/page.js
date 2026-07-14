@@ -8,11 +8,12 @@ import { Suspense } from "react";
 
 function CallbackHandler() {
   const searchParams = useSearchParams();
-  const { login } = useAuth();
+  const { login, loginWithCookie } = useAuth();
 
   useEffect(() => {
     const token = searchParams.get("token");
     const error = searchParams.get("error");
+    const oauth = searchParams.get("oauth");
 
     if (error) {
       toast.error("Authentication failed: " + error);
@@ -23,11 +24,14 @@ function CallbackHandler() {
     if (token) {
       login(token);
       toast.success("Welcome!");
+    } else if (oauth === "success") {
+      loginWithCookie();
+      toast.success("Welcome!");
     } else {
-      toast.error("No token received");
+      toast.error("Authentication callback was incomplete");
       window.location.href = "/auth";
     }
-  }, [searchParams, login]);
+  }, [searchParams, login, loginWithCookie]);
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center">

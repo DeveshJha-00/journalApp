@@ -10,9 +10,12 @@ brevo:
 
 spring:
   redis:
-    host : ${REDIS_HOST}
-    port : ${REDIS_PORT}
-    password : ${REDIS_PASSWORD}
+    host : ${REDIS_HOST:localhost}
+    port : ${REDIS_PORT:6379}
+    password : ${REDIS_PASSWORD:}
+    timeout: ${REDIS_TIMEOUT:2s}
+    lettuce:
+      shutdown-timeout: 100ms
 
   data:
     mongodb:
@@ -37,6 +40,10 @@ jwt:
 app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:3000}
+  redis:
+    cache:
+      enabled: ${REDIS_CACHE_ENABLED:true}
+    failure-backoff-ms: ${REDIS_FAILURE_BACKOFF_MS:60000}
 
 # Google Gemini Configuration
 gemini:

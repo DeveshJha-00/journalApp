@@ -76,7 +76,7 @@ public class EmailService {
             log.error("Fallback email also failed for {}", receiver);
             return false;
         } catch (Exception e) {
-            log.error("Unexpected error sending HTML email to {}: {}", receiver, e.getMessage(), e);
+            log.error("Unexpected error sending HTML email to {}: {}", receiver, e.getMessage());
             return false;
         }
     }
@@ -106,6 +106,7 @@ public class EmailService {
             Request request = new Request.Builder()
                     .url(BREVO_API_URL)
                     .post(body)
+                    // Never log this header or jsonPayload; both may contain secrets/user content.
                     .addHeader("api-key", brevoApiKey)
                     .addHeader("Content-Type", "application/json")
                     .build();
@@ -127,10 +128,10 @@ public class EmailService {
                 return false;
             }
         } catch (IOException e) {
-            log.error("IO error sending email to {}: {}", receiver, e.getMessage(), e);
+            log.error("IO error sending email to {}: {}", receiver, e.getMessage());
             return false;
         } catch (Exception e) {
-            log.error("Unexpected error sending email to {}: {}", receiver, e.getMessage(), e);
+            log.error("Unexpected error sending email to {}: {}", receiver, e.getMessage());
             return false;
         }
     }

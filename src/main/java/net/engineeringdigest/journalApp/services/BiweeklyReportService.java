@@ -8,6 +8,7 @@ import net.engineeringdigest.journalApp.repository.BiweeklyReportRepository;
 import net.engineeringdigest.journalApp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +57,7 @@ public class BiweeklyReportService {
 
 
     @Scheduled(cron = "0 0 9 */14 * ?")
+    @SchedulerLock(name = "biweeklyReport", lockAtLeastFor = "PT1H")
 //    @Scheduled(cron = "0 */2 * * * ?")  // Every 2 minutes
     public void generateAndSendBiweeklyReports() {
         log.info("Starting bi-weekly report generation process");
@@ -245,12 +247,23 @@ public class BiweeklyReportService {
      * Get journal entries created after a specific timestamp
      */
     private List<JournalEntry> getEntriesAfterTimestamp(User user, LocalDateTime timestamp) {
-        if (timestamp == null) {
-            return user.getJournalEntryList(); // Return all entries if no timestamp
+        List<JournalEntry> entries = timestamp == null
+                ? journalEntryRepository.findByUserIdOrderByDateDesc(user.getId())
+                : journalEntryRepository.findByUserIdAndDateAfterOrderByDateDesc(user.getId(), timestamp);
+
+        List<JournalEntry> legacyEntries = getLegacyEntriesForUser(user);
+        if (!legacyEntries.isEmpty() && legacyEntries.size() > entries.size()) {
+            entries = timestamp == null
+                    ? journalEntryRepository.findByUserIdOrderByDateDesc(user.getId())
+                    : journalEntryRepository.findByUserIdAndDateAfterOrderByDateDesc(user.getId(), timestamp);
+        }
+        if (entries.isEmpty()) {
+            entries = getLegacyEntriesForUser(user);
         }
 
-        return user.getJournalEntryList().stream()
-                .filter(entry -> entry.getDate() != null && entry.getDate().isAfter(timestamp))
+        return entries.stream()
+                .filter(entry -> entry.getDate() != null)
+                .filter(entry -> timestamp == null || entry.getDate().isAfter(timestamp))
                 .filter(entry -> entry.getSentimentAnalyzedAt() != null) // Only entries with sentiment analysis
                 .collect(Collectors.toList());
     }
@@ -356,17 +369,22 @@ public class BiweeklyReportService {
     }
 
     private List<User> getEligibleUsers() {
-        // Find users who have sentiment analysis enabled and valid email
-        return userRepository.findAll().stream()
-                .filter(user -> user.isSentimentAnalysis())
-                .filter(user -> user.getEmail() != null && !user.getEmail().trim().isEmpty())
-                .collect(Collectors.toList());
+        return userRepository.findEligibleForBiweeklyReports();
     }
 
     private List<JournalEntry> getRecentEntriesWithSentiment(User user, int days) {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(days);
 
-        List<JournalEntry> allEntries = user.getJournalEntryList();
+        List<JournalEntry> allEntries = journalEntryRepository.findByUserIdAndDateAfterOrderByDateDesc(user.getId(), cutoffDate);
+        List<JournalEntry> legacyEntries = getLegacyEntriesForUser(user);
+        if (!legacyEntries.isEmpty() && legacyEntries.size() > allEntries.size()) {
+            allEntries = journalEntryRepository.findByUserIdAndDateAfterOrderByDateDesc(user.getId(), cutoffDate);
+        }
+        if (allEntries.isEmpty()) {
+            allEntries = legacyEntries.stream()
+                    .filter(entry -> entry.getDate() != null && entry.getDate().isAfter(cutoffDate))
+                    .collect(Collectors.toList());
+        }
         log.info("🔍 User {} has {} total entries in journalEntryList (cutoff: {})",
                  user.getUserName(), allEntries.size(), cutoffDate);
 
@@ -410,6 +428,25 @@ public class BiweeklyReportService {
         return afterSentimentFilter.stream()
                 .sorted((e1, e2) -> e2.getDate().compareTo(e1.getDate()))
                 .collect(Collectors.toList());
+    }
+
+    private List<JournalEntry> getLegacyEntriesForUser(User user) {
+        if (user.getJournalEntryList() == null || user.getJournalEntryList().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<JournalEntry> entriesToBackfill = user.getJournalEntryList().stream()
+                .filter(entry -> entry.getUserId() == null)
+                .peek(entry -> entry.setUserId(user.getId()))
+                .collect(Collectors.toList());
+
+        if (!entriesToBackfill.isEmpty()) {
+            journalEntryRepository.saveAll(entriesToBackfill);
+            log.info("Backfilled userId on {} legacy report entries for user: {}",
+                    entriesToBackfill.size(), user.getUserName());
+        }
+
+        return user.getJournalEntryList();
     }
 
     private List<Map<String, Object>> prepareEntriesData(List<JournalEntry> entries) {

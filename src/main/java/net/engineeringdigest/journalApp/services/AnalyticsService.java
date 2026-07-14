@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.dto.AnalyticsResponseDTO;
 import net.engineeringdigest.journalApp.entity.JournalEntry;
 import net.engineeringdigest.journalApp.entity.User;
+import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,9 @@ public class AnalyticsService {
 
     @Autowired
     private RedisService redisService;
+
+    @Autowired
+    private JournalEntryRepository journalEntryRepository;
 
     private static final long ANALYTICS_CACHE_TTL = 600; // 10 minutes
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -71,13 +75,7 @@ public class AnalyticsService {
 
         // Get all entries within range, or every dated entry for all-time analytics.
         LocalDateTime cutoff = allTime ? null : LocalDateTime.now().minusDays(days);
-        List<JournalEntry> allEntriesInRange = user.getJournalEntryList() == null
-                ? Collections.emptyList()
-                : user.getJournalEntryList().stream()
-                .filter(e -> e.getDate() != null)
-                .filter(e -> allTime || e.getDate().isAfter(cutoff))
-                .sorted(Comparator.comparing(JournalEntry::getDate))
-                .collect(Collectors.toList());
+        List<JournalEntry> allEntriesInRange = loadEntriesForAnalytics(user, cutoff, allTime);
 
         int totalEntries = allEntriesInRange.size();
 
@@ -172,5 +170,46 @@ public class AnalyticsService {
         }
 
         return result;
+    }
+
+    private List<JournalEntry> loadEntriesForAnalytics(User user, LocalDateTime cutoff, boolean allTime) {
+        List<JournalEntry> entries = allTime
+                ? journalEntryRepository.findByUserIdOrderByDateAsc(user.getId())
+                : journalEntryRepository.findByUserIdAndDateAfterOrderByDateAsc(user.getId(), cutoff);
+
+        List<JournalEntry> legacyEntries = backfillLegacyEntries(user);
+        if (!legacyEntries.isEmpty() && legacyEntries.size() > entries.size()) {
+            entries = allTime
+                    ? journalEntryRepository.findByUserIdOrderByDateAsc(user.getId())
+                    : journalEntryRepository.findByUserIdAndDateAfterOrderByDateAsc(user.getId(), cutoff);
+        }
+        if (entries.isEmpty()) {
+            entries = legacyEntries;
+        }
+
+        return entries.stream()
+                .filter(e -> e.getDate() != null)
+                .filter(e -> allTime || e.getDate().isAfter(cutoff))
+                .sorted(Comparator.comparing(JournalEntry::getDate))
+                .collect(Collectors.toList());
+    }
+
+    private List<JournalEntry> backfillLegacyEntries(User user) {
+        if (user.getJournalEntryList() == null || user.getJournalEntryList().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<JournalEntry> entriesToBackfill = user.getJournalEntryList().stream()
+                .filter(entry -> entry.getUserId() == null)
+                .peek(entry -> entry.setUserId(user.getId()))
+                .collect(Collectors.toList());
+
+        if (!entriesToBackfill.isEmpty()) {
+            journalEntryRepository.saveAll(entriesToBackfill);
+            log.info("Backfilled userId on {} legacy analytics entries for user: {}",
+                    entriesToBackfill.size(), user.getUserName());
+        }
+
+        return user.getJournalEntryList();
     }
 }

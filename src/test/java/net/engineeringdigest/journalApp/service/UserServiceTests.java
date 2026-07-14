@@ -2,6 +2,7 @@ package net.engineeringdigest.journalApp.service;
 
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.UserRepository;
+import net.engineeringdigest.journalApp.services.RedisService;
 import net.engineeringdigest.journalApp.services.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +20,9 @@ class UserServiceTests {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private RedisService redisService;
 
     @InjectMocks
     private UserService userService;

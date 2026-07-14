@@ -12,8 +12,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -86,6 +90,18 @@ public class CollectionService {
         return collection;
     }
 
+    public Map<ObjectId, String> getCollectionNamesByIds(Set<ObjectId> collectionIds) {
+        if (collectionIds == null || collectionIds.isEmpty()) {
+            return Map.of();
+        }
+
+        List<Collection> collections = new ArrayList<>();
+        collectionRepository.findAllById(collectionIds).forEach(collections::add);
+
+        return collections.stream()
+                .collect(Collectors.toMap(Collection::getId, Collection::getName, (existing, duplicate) -> existing));
+    }
+
     // @Transactional - Disabled for Railway MongoDB (single instance, no replica set)
     public Collection saveCollection(Collection collection, String userName) {
         User user = userService.findByUsername(userName);
@@ -112,7 +128,7 @@ public class CollectionService {
             Optional<Collection> collection = collectionRepository.findById(id);
             if (collection.isPresent() && collection.get().getUserId().equals(user.getId())) {
                 // Unassign all entries from this collection (entries are NOT deleted)
-                List<JournalEntry> entries = journalEntryRepository.findByCollectionId(id);
+                List<JournalEntry> entries = journalEntryRepository.findByUserIdAndCollectionId(user.getId(), id);
                 for (JournalEntry entry : entries) {
                     entry.setCollectionId(null);
                     journalEntryRepository.save(entry);

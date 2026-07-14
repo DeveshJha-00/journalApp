@@ -2,7 +2,9 @@ package net.engineeringdigest.journalApp.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -16,8 +18,17 @@ public class CacheMonitoringService {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Value("${app.redis.cache.enabled:true}")
+    private boolean cacheEnabled = true;
+
     public Map<String, Object> getCacheStatistics() {
         Map<String, Object> stats = new HashMap<>();
+        if (!cacheEnabled) {
+            stats.put("enabled", false);
+            stats.put("totalKeys", 0);
+            stats.put("keysByType", new HashMap<>());
+            return stats;
+        }
 
         try {
             // Get total number of keys
@@ -44,8 +55,11 @@ public class CacheMonitoringService {
                 log.debug("Could not retrieve memory info: {}", e.getMessage());
             }
 
+        } catch (RedisConnectionFailureException e) {
+            log.warn("Redis unavailable while retrieving cache statistics: {}", e.getMessage());
+            stats.put("error", "Redis unavailable");
         } catch (Exception e) {
-            log.error("Error retrieving cache statistics", e);
+            log.warn("Error retrieving cache statistics: {}", e.getMessage());
             stats.put("error", e.getMessage());
         }
 
@@ -71,26 +85,38 @@ public class CacheMonitoringService {
     }
 
     public void clearAllCache() {
+        if (!cacheEnabled) {
+            return;
+        }
+
         try {
             Set<String> keys = redisTemplate.keys("*");
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("Cleared {} cache keys", keys.size());
             }
+        } catch (RedisConnectionFailureException e) {
+            log.warn("Redis unavailable while clearing cache: {}", e.getMessage());
         } catch (Exception e) {
-            log.error("Error clearing cache", e);
+            log.warn("Error clearing cache: {}", e.getMessage());
         }
     }
 
     public void clearCacheByPattern(String pattern) {
+        if (!cacheEnabled) {
+            return;
+        }
+
         try {
             Set<String> keys = redisTemplate.keys(pattern);
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.info("Cleared {} cache keys matching pattern: {}", keys.size(), pattern);
             }
+        } catch (RedisConnectionFailureException e) {
+            log.warn("Redis unavailable while clearing cache with pattern {}: {}", pattern, e.getMessage());
         } catch (Exception e) {
-            log.error("Error clearing cache with pattern: {}", pattern, e);
+            log.warn("Error clearing cache with pattern {}: {}", pattern, e.getMessage());
         }
     }
 }

@@ -4,6 +4,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
@@ -44,6 +45,7 @@ export const authAPI = {
     api.post("/public/login", { userName, password }),
   signup: (userName, password, email, sentimentAnalysis = false) =>
     api.post("/public/signup", { userName, password, email, sentimentAnalysis }),
+  clearOAuthCookie: () => api.post("/public/logout-cookie"),
   googleOAuthUrl: () => `${API_BASE_URL}/oauth2/authorization/google`,
 };
 

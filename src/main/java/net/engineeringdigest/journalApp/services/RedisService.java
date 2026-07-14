@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,14 @@ public class RedisService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Value("${app.redis.cache.enabled:true}")
+    private boolean cacheEnabled = true;
+
+    @Value("${app.redis.failure-backoff-ms:60000}")
+    private long failureBackoffMs = 60000L;
+
+    private volatile long redisUnavailableUntilMs = 0L;
+
     // Cache key constants
     public static final String USER_PROFILE_KEY = "user:profile:";
     public static final String USER_COLLECTIONS_KEY = "user:collections:";
@@ -36,6 +46,10 @@ public class RedisService {
     public static final long RECENT_ENTRIES_TTL = 600; // 10 minutes
 
     public <T> T get(String key, Class<T> entityClass) {
+        if (shouldSkipRedis()) {
+            return null;
+        }
+
         try {
             Object o = redisTemplate.opsForValue().get(key);
             if (o == null) {
@@ -53,13 +67,20 @@ public class RedisService {
             } else {
                 return objectMapper.readValue(o.toString(), entityClass);
             }
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("get", key, e);
+            return null;
         } catch (Exception e) {
-            log.error("Error getting value from Redis for key: {}", key, e);
+            log.warn("Redis get failed for key {}. Treating as cache miss: {}", key, e.getMessage());
             return null;
         }
     }
 
     public <T> List<T> getList(String key, TypeReference<List<T>> typeReference) {
+        if (shouldSkipRedis()) {
+            return null;
+        }
+
         try {
             Object o = redisTemplate.opsForValue().get(key);
             if (o == null) {
@@ -74,19 +95,28 @@ public class RedisService {
             } else {
                 return objectMapper.readValue(o.toString(), typeReference);
             }
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("getList", key, e);
+            return null;
         } catch (Exception e) {
-            log.error("Error getting list from Redis for key: {}", key, e);
+            log.warn("Redis list get failed for key {}. Treating as cache miss: {}", key, e.getMessage());
             return null;
         }
     }
 
     public void set(String key, Object value, Long ttl) {
+        if (shouldSkipRedis()) {
+            return;
+        }
+
         try {
             String jsonValue = objectMapper.writeValueAsString(value);
             redisTemplate.opsForValue().set(key, jsonValue, ttl, TimeUnit.SECONDS);
             log.debug("Cached value for key: {} with TTL: {} seconds", key, ttl);
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("set", key, e);
         } catch (Exception e) {
-            log.error("Error setting value in Redis for key: {}", key, e);
+            log.warn("Redis set failed for key {}. Continuing without cache: {}", key, e.getMessage());
         }
     }
 
@@ -95,40 +125,65 @@ public class RedisService {
     }
 
     public void delete(String key) {
+        if (shouldSkipRedis()) {
+            return;
+        }
+
         try {
             redisTemplate.delete(key);
             log.debug("Deleted cache key: {}", key);
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("delete", key, e);
         } catch (Exception e) {
-            log.error("Error deleting key from Redis: {}", key, e);
+            log.warn("Redis delete failed for key {}. Continuing without cache invalidation: {}", key, e.getMessage());
         }
     }
 
     public void deletePattern(String pattern) {
+        if (shouldSkipRedis()) {
+            return;
+        }
+
         try {
             Set<String> keys = redisTemplate.keys(pattern);
             if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
                 log.debug("Deleted {} keys matching pattern: {}", keys.size(), pattern);
             }
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("deletePattern", pattern, e);
         } catch (Exception e) {
-            log.error("Error deleting keys with pattern: {}", pattern, e);
+            log.warn("Redis pattern delete failed for pattern {}. Continuing without cache invalidation: {}", pattern, e.getMessage());
         }
     }
 
     public boolean exists(String key) {
+        if (shouldSkipRedis()) {
+            return false;
+        }
+
         try {
             return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("exists", key, e);
+            return false;
         } catch (Exception e) {
-            log.error("Error checking key existence in Redis: {}", key, e);
+            log.warn("Redis exists check failed for key {}. Treating as absent: {}", key, e.getMessage());
             return false;
         }
     }
 
     public void expire(String key, long timeout, TimeUnit unit) {
+        if (shouldSkipRedis()) {
+            return;
+        }
+
         try {
             redisTemplate.expire(key, timeout, unit);
+        } catch (RedisConnectionFailureException e) {
+            markRedisUnavailable("expire", key, e);
         } catch (Exception e) {
-            log.error("Error setting expiration for key: {}", key, e);
+            log.warn("Redis expire failed for key {}. Continuing without expiration update: {}", key, e.getMessage());
         }
     }
 
@@ -168,5 +223,15 @@ public class RedisService {
         delete(buildCollectionKey(collectionId));
         delete(buildCollectionEntriesKey(collectionId));
         log.info("Invalidated cache for collection: {}", collectionId);
+    }
+
+    private boolean shouldSkipRedis() {
+        return !cacheEnabled || System.currentTimeMillis() < redisUnavailableUntilMs;
+    }
+
+    private void markRedisUnavailable(String operation, String key, Exception e) {
+        redisUnavailableUntilMs = System.currentTimeMillis() + failureBackoffMs;
+        log.warn("Redis unavailable during {} for key '{}'. Cache will be skipped for {} ms. Cause: {}",
+                operation, key, failureBackoffMs, e.getMessage());
     }
 }

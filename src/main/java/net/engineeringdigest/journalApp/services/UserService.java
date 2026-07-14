@@ -34,20 +34,15 @@ public class UserService {
     }
 
     public void saveNewUser(User user){
-        try{
-            if (user.getPassword() == null || user.getPassword().isBlank()) {
-                throw new IllegalArgumentException("Password is required for local signup");
-            }
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-            user.setRoles(Arrays.asList("USER"));
-            if (user.getAuthProvider() == null) {
-                user.setAuthProvider("LOCAL");
-            }
-            userRepository.save(user);
-        }catch (Exception e){
-            log.error("Error saving new user: {}", e.getMessage());
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new IllegalArgumentException("Password is required for local signup");
         }
-
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRoles(Arrays.asList("USER"));
+        if (user.getAuthProvider() == null) {
+            user.setAuthProvider("LOCAL");
+        }
+        userRepository.save(user);
     }
 
     public void saveAdmin(User user) {
@@ -79,26 +74,23 @@ public class UserService {
     }
 
     public User findByUsername(String userName){
-        // TEMPORARILY DISABLED USER CACHING - ObjectId serialization issue
-        // TODO: Re-enable after ObjectId serialization is properly configured
+        String userCacheKey = "user:username:" + userName;
+        User cachedUser = redisService.get(userCacheKey, User.class);
 
-        // String userCacheKey = "user:username:" + userName;
-        // User cachedUser = redisService.get(userCacheKey, User.class);
-
-        // if (cachedUser != null) {
-        //     log.debug("User found in cache: {}", userName);
-        //     return cachedUser;
-        // }
+        if (cachedUser != null) {
+            log.debug("User found in cache: {}", userName);
+            return cachedUser;
+        }
 
         // Get directly from database
         User user = userRepository.findByuserName(userName);
         if (user != null) {
             log.debug("User found in database: {}", userName);
-            // CACHING DISABLED: redisService.set(userCacheKey, user, RedisService.USER_PROFILE_TTL);
-            // CACHING DISABLED: String userProfileKey = redisService.buildUserProfileKey(user.getId().toHexString());
-            // CACHING DISABLED: redisService.set(userProfileKey, user, RedisService.USER_PROFILE_TTL);
-
-            // log.debug("User cached: {}", userName);
+            redisService.set(userCacheKey, user, RedisService.USER_PROFILE_TTL);
+            if (user.getId() != null) {
+                String userProfileKey = redisService.buildUserProfileKey(user.getId().toHexString());
+                redisService.set(userProfileKey, user, RedisService.USER_PROFILE_TTL);
+            }
         }
         return user;
     }
