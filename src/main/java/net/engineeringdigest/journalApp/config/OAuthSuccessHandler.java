@@ -3,10 +3,12 @@ package net.engineeringdigest.journalApp.config;
 import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.UserRepository;
+import net.engineeringdigest.journalApp.services.OAuthTokenExchangeService;
 import net.engineeringdigest.journalApp.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,6 +33,9 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Autowired
     private AuthCookieService authCookieService;
+
+    @Autowired
+    private OAuthTokenExchangeService oAuthTokenExchangeService;
 
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
@@ -72,19 +78,33 @@ public class OAuthSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
             // Generate JWT token
             String jwt = jwtUtil.generateToken(user.getUserName());
+            String code = oAuthTokenExchangeService.createCode(jwt);
 
-            // Store JWT in an HttpOnly cookie so it is not exposed in the redirect URL.
+            // Keep the HttpOnly cookie as a fallback, but the frontend primarily exchanges the one-time code.
             authCookieService.addJwtCookie(response, jwt);
+            clearSpringOAuthSession(request, response);
 
-            String redirectUrl = frontendUrl + "/auth/callback?oauth=success";
+            String redirectUrl = frontendUrl + "/auth/callback?oauth=success&code=" + code;
             log.info("OAuth login successful, redirecting to frontend for user: {}", user.getUserName());
             getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 
         } catch (Exception e) {
             log.error("Error during OAuth authentication for email {}: {}", email, e.getMessage());
             getRedirectStrategy().sendRedirect(request, response,
-                    frontendUrl + "/auth/callback?error=auth_failed");
+                frontendUrl + "/auth/callback?error=auth_failed");
         }
+    }
+
+    private void clearSpringOAuthSession(HttpServletRequest request, HttpServletResponse response) {
+        clearAuthenticationAttributes(request);
+        SecurityContextHolder.clearContext();
+
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        response.addHeader("Set-Cookie", "JSESSIONID=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax");
     }
 
     /**

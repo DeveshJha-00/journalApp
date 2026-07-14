@@ -15,8 +15,10 @@ api.interceptors.request.use(
   (config) => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
-      if (token) {
+      if (token && token.split(".").length === 3) {
         config.headers.Authorization = `Bearer ${token}`;
+      } else if (token) {
+        localStorage.removeItem("token");
       }
     }
     return config;
@@ -28,8 +30,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
+    const isCurrentUserCheck = error.config?.url?.startsWith("/user/me");
+    const isAuthFailure =
+      error.response?.status === 401 ||
+      error.response?.status === 403 ||
+      (error.response?.status === 404 && isCurrentUserCheck);
+
+    if (isAuthFailure && typeof window !== "undefined") {
       localStorage.removeItem("token");
+      localStorage.removeItem("authMode");
       // Only redirect if not already on auth pages
       if (!window.location.pathname.startsWith("/auth")) {
         window.location.href = "/auth";
@@ -46,6 +55,7 @@ export const authAPI = {
   signup: (userName, password, email, sentimentAnalysis = false) =>
     api.post("/public/signup", { userName, password, email, sentimentAnalysis }),
   clearOAuthCookie: () => api.post("/public/logout-cookie"),
+  exchangeOAuthCode: (code) => api.post(`/public/oauth/exchange?code=${encodeURIComponent(code)}`),
   googleOAuthUrl: () => `${API_BASE_URL}/oauth2/authorization/google`,
 };
 

@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.engineeringdigest.journalApp.config.AuthCookieService;
 import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.filter.JwtFilter;
+import net.engineeringdigest.journalApp.services.OAuthTokenExchangeService;
 import net.engineeringdigest.journalApp.services.UserDetailsAuthServiceImpl;
 import net.engineeringdigest.journalApp.services.UserService;
 import net.engineeringdigest.journalApp.utils.JwtUtil;
@@ -34,6 +35,8 @@ public class PublicController {
     private JwtUtil jwtUtil;
     @Autowired
     private AuthCookieService authCookieService;
+    @Autowired
+    private OAuthTokenExchangeService oAuthTokenExchangeService;
 
 
     @GetMapping("/health-check")
@@ -77,6 +80,13 @@ public class PublicController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-
+    @PostMapping("/oauth/exchange")
+    public ResponseEntity<String> exchangeOAuthCode(@RequestParam String code) {
+        String jwt = oAuthTokenExchangeService.consumeCode(code);
+        if (jwt == null) {
+            return new ResponseEntity<>("OAuth session expired. Please sign in again.", HttpStatus.UNAUTHORIZED);
+        }
+        return new ResponseEntity<>(jwt, HttpStatus.OK);
+    }
 
 }

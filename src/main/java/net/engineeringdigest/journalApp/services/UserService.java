@@ -95,5 +95,21 @@ public class UserService {
         return user;
     }
 
+    public User findByUsernameFresh(String userName) {
+        return userRepository.findByuserName(userName);
+    }
+
+    public void invalidateUserCaches(User user) {
+        if (user == null) {
+            return;
+        }
+        if (user.getId() != null) {
+            redisService.invalidateUserCache(user.getId().toHexString());
+        }
+        if (user.getUserName() != null) {
+            redisService.delete("user:username:" + user.getUserName());
+        }
+    }
+
 
 }

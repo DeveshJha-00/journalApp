@@ -1,19 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { authAPI } from "@/lib/api";
 import { toast } from "sonner";
 import { Suspense } from "react";
 
 function CallbackHandler() {
   const searchParams = useSearchParams();
   const { login, loginWithCookie } = useAuth();
+  const handledRef = useRef(false);
 
   useEffect(() => {
+    if (handledRef.current) {
+      return;
+    }
+    handledRef.current = true;
+
     const token = searchParams.get("token");
     const error = searchParams.get("error");
     const oauth = searchParams.get("oauth");
+    const code = searchParams.get("code");
 
     if (error) {
       toast.error("Authentication failed: " + error);
@@ -21,12 +29,25 @@ function CallbackHandler() {
       return;
     }
 
+    const completeOAuth = async () => {
+      if (code) {
+        const res = await authAPI.exchangeOAuthCode(code);
+        login(res.data);
+      } else {
+        loginWithCookie();
+      }
+      toast.success("Welcome!");
+    };
+
     if (token) {
       login(token);
       toast.success("Welcome!");
     } else if (oauth === "success") {
-      loginWithCookie();
-      toast.success("Welcome!");
+      completeOAuth().catch((err) => {
+        const msg = err.response?.data || "Authentication callback was incomplete";
+        toast.error(typeof msg === "string" ? msg : "Authentication failed");
+        window.location.href = "/auth";
+      });
     } else {
       toast.error("Authentication callback was incomplete");
       window.location.href = "/auth";

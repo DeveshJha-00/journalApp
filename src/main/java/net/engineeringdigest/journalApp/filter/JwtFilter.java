@@ -44,10 +44,20 @@ public class JwtFilter  extends OncePerRequestFilter{
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
                 log.debug("Ignoring invalid JWT: {}", e.getMessage());
+                username = null;
+                jwt = extractJwtFromCookie(request);
+                if (jwt != null) {
+                    try {
+                        username = jwtUtil.extractUsername(jwt);
+                    } catch (Exception cookieException) {
+                        log.debug("Ignoring invalid JWT cookie: {}", cookieException.getMessage());
+                        username = null;
+                    }
+                }
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null) {
             try {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 if (jwtUtil.validateToken(jwt)) {

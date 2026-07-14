@@ -25,8 +25,12 @@ public class AnalyticsService {
     @Autowired
     private JournalEntryRepository journalEntryRepository;
 
+    @Autowired
+    private UserService userService;
+
     private static final long ANALYTICS_CACHE_TTL = 600; // 10 minutes
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final String ANALYTICS_CACHE_PREFIX = "analytics:v2:";
 
     /**
      * Maps sentiment score (-1.0 to 1.0) to mood scale (1 to 10).
@@ -66,7 +70,7 @@ public class AnalyticsService {
         String userId = user.getId().toHexString();
 
         // Try cache first
-        String cacheKey = "analytics:" + userId + ":" + (allTime ? "all" : days);
+        String cacheKey = ANALYTICS_CACHE_PREFIX + userId + ":" + (allTime ? "all" : days);
         AnalyticsResponseDTO cached = redisService.get(cacheKey, AnalyticsResponseDTO.class);
         if (cached != null) {
             log.debug("Analytics cache hit for user {} range {}", userId, allTime ? "all" : days + "d");
@@ -195,21 +199,24 @@ public class AnalyticsService {
     }
 
     private List<JournalEntry> backfillLegacyEntries(User user) {
-        if (user.getJournalEntryList() == null || user.getJournalEntryList().isEmpty()) {
+        User freshUser = userService.findByUsernameFresh(user.getUserName());
+        if (freshUser == null || freshUser.getJournalEntryList() == null || freshUser.getJournalEntryList().isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<JournalEntry> entriesToBackfill = user.getJournalEntryList().stream()
+        List<JournalEntry> entries = new ArrayList<>(freshUser.getJournalEntryList());
+        List<JournalEntry> entriesToBackfill = entries.stream()
                 .filter(entry -> entry.getUserId() == null)
-                .peek(entry -> entry.setUserId(user.getId()))
+                .peek(entry -> entry.setUserId(freshUser.getId()))
                 .collect(Collectors.toList());
 
         if (!entriesToBackfill.isEmpty()) {
             journalEntryRepository.saveAll(entriesToBackfill);
             log.info("Backfilled userId on {} legacy analytics entries for user: {}",
-                    entriesToBackfill.size(), user.getUserName());
+                    entriesToBackfill.size(), freshUser.getUserName());
+            userService.invalidateUserCaches(freshUser);
         }
 
-        return user.getJournalEntryList();
+        return entries;
     }
 }

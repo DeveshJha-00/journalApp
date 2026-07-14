@@ -210,7 +210,7 @@ public class JournalEntryService {
 
             redisService.delete(redisService.buildEntryKey(entryId.toHexString()));
             redisService.delete(redisService.buildUserRecentEntriesKey(user.getId().toHexString()));
-            redisService.deletePattern("analytics:" + user.getId().toHexString() + ":*");
+            invalidateAnalyticsCaches(user);
 
             if (oldCollectionId != null) {
                 redisService.delete(buildUserCollectionEntriesKey(user.getId(), oldCollectionId));
@@ -227,18 +227,20 @@ public class JournalEntryService {
     }
 
     private Optional<JournalEntry> getLegacyOwnedEntry(User user, ObjectId entryId) {
-        if (user.getJournalEntryList() == null) {
+        User freshUser = userService.findByUsernameFresh(user.getUserName());
+        if (freshUser == null || freshUser.getJournalEntryList() == null) {
             return Optional.empty();
         }
 
-        Optional<JournalEntry> legacyEntry = user.getJournalEntryList().stream()
+        Optional<JournalEntry> legacyEntry = freshUser.getJournalEntryList().stream()
                 .filter(entry -> entry.getId() != null && entry.getId().equals(entryId))
                 .findFirst();
 
         legacyEntry.ifPresent(entry -> {
             if (entry.getUserId() == null) {
-                entry.setUserId(user.getId());
+                entry.setUserId(freshUser.getId());
                 journalEntryRepository.save(entry);
+                userService.invalidateUserCaches(freshUser);
             }
         });
 
@@ -246,43 +248,51 @@ public class JournalEntryService {
     }
 
     private List<JournalEntry> backfillLegacyEntries(User user) {
-        if (user.getJournalEntryList() == null || user.getJournalEntryList().isEmpty()) {
+        User freshUser = userService.findByUsernameFresh(user.getUserName());
+        if (freshUser == null || freshUser.getJournalEntryList() == null || freshUser.getJournalEntryList().isEmpty()) {
             return List.of();
         }
 
-        List<JournalEntry> entries = new ArrayList<>(user.getJournalEntryList());
+        List<JournalEntry> entries = new ArrayList<>(freshUser.getJournalEntryList());
         List<JournalEntry> entriesToBackfill = entries.stream()
                 .filter(entry -> entry.getUserId() == null)
-                .peek(entry -> entry.setUserId(user.getId()))
+                .peek(entry -> entry.setUserId(freshUser.getId()))
                 .collect(Collectors.toList());
 
         if (!entriesToBackfill.isEmpty()) {
             journalEntryRepository.saveAll(entriesToBackfill);
             log.info("Backfilled userId on {} legacy journal entries for user: {}",
-                    entriesToBackfill.size(), user.getUserName());
+                    entriesToBackfill.size(), freshUser.getUserName());
+            userService.invalidateUserCaches(freshUser);
         }
 
         return entries;
     }
 
     private void removeLegacyUserReference(User user, ObjectId entryId) {
-        if (user.getJournalEntryList() == null) {
+        User freshUser = userService.findByUsernameFresh(user.getUserName());
+        if (freshUser == null || freshUser.getJournalEntryList() == null) {
             return;
         }
 
-        boolean removed = user.getJournalEntryList().removeIf(entry -> entry.getId() != null && entry.getId().equals(entryId));
+        boolean removed = freshUser.getJournalEntryList().removeIf(entry -> entry.getId() != null && entry.getId().equals(entryId));
         if (removed) {
-            userService.saveUser(user);
+            userService.saveUser(freshUser);
         }
     }
 
     private void invalidateEntryCaches(JournalEntry entry, User user) {
         redisService.delete(redisService.buildUserRecentEntriesKey(user.getId().toHexString()));
-        redisService.deletePattern("analytics:" + user.getId().toHexString() + ":*");
+        invalidateAnalyticsCaches(user);
 
         if (entry.getCollectionId() != null) {
             redisService.delete(buildUserCollectionEntriesKey(user.getId(), entry.getCollectionId()));
         }
+    }
+
+    private void invalidateAnalyticsCaches(User user) {
+        redisService.deletePattern("analytics:" + user.getId().toHexString() + ":*");
+        redisService.deletePattern("analytics:v2:" + user.getId().toHexString() + ":*");
     }
 
     private String buildUserCollectionEntriesKey(ObjectId userId, ObjectId collectionId) {

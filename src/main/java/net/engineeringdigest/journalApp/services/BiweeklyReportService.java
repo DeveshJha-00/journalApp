@@ -431,22 +431,26 @@ public class BiweeklyReportService {
     }
 
     private List<JournalEntry> getLegacyEntriesForUser(User user) {
-        if (user.getJournalEntryList() == null || user.getJournalEntryList().isEmpty()) {
+        User freshUser = userRepository.findByuserName(user.getUserName());
+        if (freshUser == null || freshUser.getJournalEntryList() == null || freshUser.getJournalEntryList().isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<JournalEntry> entriesToBackfill = user.getJournalEntryList().stream()
+        List<JournalEntry> entries = new ArrayList<>(freshUser.getJournalEntryList());
+        List<JournalEntry> entriesToBackfill = entries.stream()
                 .filter(entry -> entry.getUserId() == null)
-                .peek(entry -> entry.setUserId(user.getId()))
+                .peek(entry -> entry.setUserId(freshUser.getId()))
                 .collect(Collectors.toList());
 
         if (!entriesToBackfill.isEmpty()) {
             journalEntryRepository.saveAll(entriesToBackfill);
             log.info("Backfilled userId on {} legacy report entries for user: {}",
-                    entriesToBackfill.size(), user.getUserName());
+                    entriesToBackfill.size(), freshUser.getUserName());
+            redisService.invalidateUserCache(freshUser.getId().toHexString());
+            redisService.delete("user:username:" + freshUser.getUserName());
         }
 
-        return user.getJournalEntryList();
+        return entries;
     }
 
     private List<Map<String, Object>> prepareEntriesData(List<JournalEntry> entries) {

@@ -15,8 +15,13 @@ export function AuthProvider({ children }) {
   const queryClient = useQueryClient();
 
   const login = useCallback((jwt) => {
-    localStorage.setItem("token", jwt);
-    setToken(jwt);
+    const tokenValue = typeof jwt === "string" ? jwt : jwt?.token;
+    if (!tokenValue || typeof tokenValue !== "string") {
+      throw new Error("Authentication response did not include a JWT");
+    }
+    localStorage.setItem("token", tokenValue);
+    localStorage.removeItem("authMode");
+    setToken(tokenValue);
     queryClient.clear();
     router.push("/dashboard");
   }, [router, queryClient]);

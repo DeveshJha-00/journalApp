@@ -6,6 +6,7 @@ import net.engineeringdigest.journalApp.entity.User;
 import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
 import net.engineeringdigest.journalApp.services.AnalyticsService;
 import net.engineeringdigest.journalApp.services.RedisService;
+import net.engineeringdigest.journalApp.services.UserService;
 import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,15 +32,18 @@ class AnalyticsServiceTests {
     @Mock
     private JournalEntryRepository journalEntryRepository;
 
+    @Mock
+    private UserService userService;
+
     @InjectMocks
     private AnalyticsService analyticsService;
 
     @Test
     void getAnalytics_allTimeIncludesOldAnalyzedEntries() {
         ObjectId userId = new ObjectId();
-        when(redisService.get(eq("analytics:" + userId.toHexString() + ":30"), eq(AnalyticsResponseDTO.class)))
+        when(redisService.get(eq("analytics:v2:" + userId.toHexString() + ":30"), eq(AnalyticsResponseDTO.class)))
                 .thenReturn(null);
-        when(redisService.get(eq("analytics:" + userId.toHexString() + ":all"), eq(AnalyticsResponseDTO.class)))
+        when(redisService.get(eq("analytics:v2:" + userId.toHexString() + ":all"), eq(AnalyticsResponseDTO.class)))
                 .thenReturn(null);
 
         JournalEntry oldEntry = entry(userId, LocalDateTime.now().minusDays(120), 0.2);
@@ -56,6 +60,7 @@ class AnalyticsServiceTests {
                 .journalEntryList(Arrays.asList(oldEntry, recentEntry))
                 .roles(Collections.singletonList("USER"))
                 .build();
+        when(userService.findByUsernameFresh("Ashu")).thenReturn(user);
 
         AnalyticsResponseDTO thirtyDays = analyticsService.getAnalytics(user, "30d");
         AnalyticsResponseDTO allTime = analyticsService.getAnalytics(user, "all");
@@ -63,6 +68,37 @@ class AnalyticsServiceTests {
         assertEquals(1, thirtyDays.getTotalEntries());
         assertEquals(2, allTime.getTotalEntries());
         assertEquals(2, allTime.getMoodTimeline().size());
+    }
+
+    @Test
+    void getAnalytics_backfillsLegacyEntriesFromFreshMongoUser() {
+        ObjectId userId = new ObjectId();
+        when(redisService.get(eq("analytics:v2:" + userId.toHexString() + ":all"), eq(AnalyticsResponseDTO.class)))
+                .thenReturn(null);
+
+        JournalEntry oldLegacyEntry = entry(null, LocalDateTime.now().minusDays(120), 0.4);
+
+        User cachedUser = User.builder()
+                .id(userId)
+                .userName("Ashu")
+                .roles(Collections.singletonList("USER"))
+                .build();
+        User freshUser = User.builder()
+                .id(userId)
+                .userName("Ashu")
+                .journalEntryList(Collections.singletonList(oldLegacyEntry))
+                .roles(Collections.singletonList("USER"))
+                .build();
+
+        when(journalEntryRepository.findByUserIdOrderByDateAsc(userId))
+                .thenReturn(Collections.emptyList());
+        when(userService.findByUsernameFresh("Ashu")).thenReturn(freshUser);
+
+        AnalyticsResponseDTO allTime = analyticsService.getAnalytics(cachedUser, "all");
+
+        assertEquals(1, allTime.getTotalEntries());
+        assertEquals(userId, oldLegacyEntry.getUserId());
+        assertEquals(1, allTime.getMoodTimeline().size());
     }
 
     private JournalEntry entry(ObjectId userId, LocalDateTime date, double sentimentScore) {

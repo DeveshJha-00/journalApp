@@ -13,7 +13,10 @@ const Header = () => {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md border-b border-orange-100 dark:border-gray-800">
@@ -24,7 +27,7 @@ const Header = () => {
             alt="Journal App"
             width={300}
             height={100}
-            className="h-16 w-auto object-contain bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl"
+            className="h-16 w-auto object-contain"
           />
         </Link>
 
