@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import {useState } from "react";
 import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { userAPI, journalAPI } from "@/lib/api";
+import { userAPI } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -26,8 +26,8 @@ import {
   TrendingUp,
   Smile,
   FileText,
-  ArrowRight,
   Pencil,
+  X,
 } from "lucide-react";
 import MoodChart from "@/components/MoodChart";
 import {
@@ -37,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
 import { toast } from "sonner";
 
 function getMoodMessage(avgMood) {
@@ -51,7 +50,7 @@ function getMoodMessage(avgMood) {
 export default function DashboardPage() {
   const { isAuthenticated, isLoading: authLoading, login: authLogin } = useAuth();
   const router = useRouter();
-  const [period, setPeriod] = useState("7d");
+  const [period, setPeriod] = useState("all");
   const [editingUsername, setEditingUsername] = useState(false);
   const [newUsername, setNewUsername] = useState("");
 
@@ -189,6 +188,8 @@ export default function DashboardPage() {
             <SelectItem value="7d">Last 7 Days</SelectItem>
             <SelectItem value="15d">Last 15 Days</SelectItem>
             <SelectItem value="30d">Last 30 Days</SelectItem>
+            <SelectItem value="90d">Last 90 Days</SelectItem>
+            <SelectItem value="all">All Time</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -359,6 +360,7 @@ function ReportCard({ report }) {
         year: "numeric",
       })
     : "Unknown date";
+  const reportContent = normalizeReportContent(report.reportContent);
 
   return (
     <Dialog>
@@ -388,21 +390,54 @@ function ReportCard({ report }) {
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 ">
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-5xl max-h-[85vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+      >
+        <DialogClose asChild>
+          <button
+            type="button"
+            className="absolute right-4 top-4 rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+            aria-label="Close report"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </DialogClose>
         <DialogHeader>
-          <DialogTitle>Report \u2014 {date}</DialogTitle>
+          <DialogTitle className="pr-8 text-gray-900 dark:text-gray-100">Report - {date}</DialogTitle>
         </DialogHeader>
         <div
-          className="prose prose-sm dark:prose-invert max-w-none prose-headings:text-orange-800 dark:prose-headings:text-orange-300"
-          dangerouslySetInnerHTML={{ __html: report.reportContent }}
+          className="report-content prose prose-sm max-w-none"
+          dangerouslySetInnerHTML={{ __html: reportContent }}
         />
         <div className="mt-6 flex justify-end">
         <DialogClose asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline" className="border-gray-300 text-gray-800 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-800">Close</Button>
         </DialogClose>
       </div>
       </DialogContent>
       
     </Dialog>
   );
+}
+
+function normalizeReportContent(content = "") {
+  let html = content.trim();
+
+  html = html
+    .replace(/^\s*(?:```|'''|~~~)\s*(?:html)?\s*/i, "")
+    .replace(/\s*(?:```|'''|~~~)\s*$/i, "")
+    .replace(/<!doctype[^>]*>/gi, "")
+    .replace(/<head[\s\S]*?<\/head>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/?html[^>]*>/gi, "");
+
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch) {
+    html = bodyMatch[1];
+  } else {
+    html = html.replace(/<\/?body[^>]*>/gi, "");
+  }
+
+  return html.trim();
 }

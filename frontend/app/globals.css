@@ -186,6 +186,65 @@
   color: #d1d5db !important;
 }
 
+/* Biweekly report modal content */
+.report-content {
+  color: #1f2937;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+}
+.report-content :is(h1, h2, h3, h4, h5, h6) {
+  color: #c2410c !important;
+  border-color: #fed7aa !important;
+  font-weight: 700;
+}
+.report-content :is(p, li, span) {
+  color: #374151 !important;
+}
+.report-content strong {
+  color: #111827 !important;
+  font-weight: 700;
+}
+.report-content a {
+  color: #ea580c !important;
+}
+.report-content ul,
+.report-content ol {
+  padding-left: 1.5rem;
+}
+.report-content blockquote {
+  border-left: 4px solid #fb923c;
+  color: #4b5563 !important;
+  padding-left: 1rem;
+}
+.dark .report-content {
+  background: #111827;
+  color: #e5e7eb;
+}
+.dark .report-content :is(h1, h2, h3, h4, h5, h6) {
+  color: #fdba74 !important;
+  border-color: #7c2d12 !important;
+}
+.dark .report-content :is(p, li, span) {
+  color: #e5e7eb !important;
+}
+.dark .report-content strong {
+  color: #ffffff !important;
+}
+.dark .report-content a {
+  color: #fb923c !important;
+}
+.dark .report-content blockquote {
+  color: #d1d5db !important;
+}
+.dark .report-content [style*="background"] {
+  background: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+.dark .report-content [style*="background"] :is(h1, h2, h3, h4, h5, h6, p, li, span, strong) {
+  color: #e5e7eb !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

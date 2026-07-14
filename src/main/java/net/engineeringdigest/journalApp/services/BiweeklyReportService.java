@@ -211,7 +211,7 @@ public class BiweeklyReportService {
             String cachedContent = redisService.get(cacheKey, String.class);
             if (cachedContent != null && !cachedContent.trim().isEmpty()) {
                 log.debug("📋 Retrieved cached report content (length: {} chars)", cachedContent.length());
-                return cachedContent;
+                return normalizeReportContent(cachedContent);
             }
             return null;
         } catch (Exception e) {
@@ -271,7 +271,8 @@ public class BiweeklyReportService {
 
             // Generate report using Gemini
             log.info("🤖 Calling Gemini API for fresh report generation");
-            String reportContent = geminiService.generateBiweeklyReport(entriesData, user.getUserName());
+            String reportContent = normalizeReportContent(
+                    geminiService.generateBiweeklyReport(entriesData, user.getUserName()));
             log.info("✅ Fresh report generated (length: {} chars)", reportContent.length());
 
             // Cache the new report with timestamp
@@ -427,6 +428,31 @@ public class BiweeklyReportService {
                 .collect(Collectors.toList());
     }
 
+    private String normalizeReportContent(String reportContent) {
+        if (reportContent == null) {
+            return null;
+        }
+
+        String cleaned = reportContent.trim()
+                .replaceAll("(?is)^\\s*(?:```|'''|~~~)\\s*(?:html)?\\s*", "")
+                .replaceAll("(?is)\\s*(?:```|'''|~~~)\\s*$", "")
+                .replaceAll("(?is)<!doctype[^>]*>", "")
+                .replaceAll("(?is)<head[\\s\\S]*?</head>", "")
+                .replaceAll("(?is)<style[\\s\\S]*?</style>", "")
+                .replaceAll("(?is)</?html[^>]*>", "");
+
+        java.util.regex.Matcher bodyMatcher = java.util.regex.Pattern
+                .compile("(?is)<body[^>]*>([\\s\\S]*?)</body>")
+                .matcher(cleaned);
+        if (bodyMatcher.find()) {
+            cleaned = bodyMatcher.group(1);
+        } else {
+            cleaned = cleaned.replaceAll("(?is)</?body[^>]*>", "");
+        }
+
+        return cleaned.trim();
+    }
+
     private String createEmailTemplate(String userName, String reportContent) {
         return String.format(
             "<!DOCTYPE html>\n" +
@@ -438,10 +464,20 @@ public class BiweeklyReportService {
             "    <style>\n" +
             "        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }\n" +
             "        .header { background: linear-gradient(135deg, #667eea 0%%, #764ba2 100%%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }\n" +
-            "        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }\n" +
-            "        .footer { text-align: center; margin-top: 30px; padding: 20px; background: #e9ecef; border-radius: 10px; }\n" +
+            "        .content { background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: 0; border-radius: 0 0 10px 10px; color: #243447; }\n" +
+            "        .content * { color: #243447 !important; }\n" +
+            "        .content h1, .content h2, .content h3, .content h4 { color: #c2410c !important; line-height: 1.3; margin: 24px 0 12px; }\n" +
+            "        .content h1:first-child, .content h2:first-child, .content h3:first-child { margin-top: 0; }\n" +
+            "        .content p { margin: 0 0 16px; }\n" +
+            "        .content ul, .content ol { margin: 0 0 16px 20px; padding-left: 18px; }\n" +
+            "        .content li { margin-bottom: 8px; }\n" +
+            "        .content strong, .content b { color: #111827 !important; }\n" +
+            "        .content a { color: #ea580c !important; }\n" +
+            "        .content blockquote { border-left: 4px solid #fb923c; margin: 16px 0; padding-left: 16px; color: #4b5563 !important; }\n" +
+            "        .footer { text-align: center; margin-top: 30px; padding: 20px; background: #e9ecef; color: #374151; border-radius: 10px; }\n" +
+            "        .footer * { color: #374151 !important; }\n" +
             "        h1 { margin: 0; font-size: 24px; }\n" +
-            "        h2 { color: #667eea; border-bottom: 2px solid #667eea; padding-bottom: 10px; }\n" +
+            "        h2 { border-bottom: 2px solid #fed7aa; padding-bottom: 10px; }\n" +
             "        .unsubscribe { font-size: 12px; color: #666; margin-top: 20px; }\n" +
             "        .unsubscribe a { color: #667eea; text-decoration: none; }\n" +
             "    </style>\n" +

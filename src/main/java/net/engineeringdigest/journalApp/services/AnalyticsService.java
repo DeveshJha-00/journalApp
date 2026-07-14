@@ -49,32 +49,52 @@ public class AnalyticsService {
         }
     }
 
+    private boolean isAllTimeRange(String range) {
+        return range != null && "all".equalsIgnoreCase(range.trim());
+    }
+
     /**
      * Compute analytics for a user over the given range.
      */
     public AnalyticsResponseDTO getAnalytics(User user, String range) {
-        int days = parseRangeDays(range);
+        boolean allTime = isAllTimeRange(range);
+        int days = allTime ? 0 : parseRangeDays(range);
         String userId = user.getId().toHexString();
 
         // Try cache first
-        String cacheKey = "analytics:" + userId + ":" + days;
+        String cacheKey = "analytics:" + userId + ":" + (allTime ? "all" : days);
         AnalyticsResponseDTO cached = redisService.get(cacheKey, AnalyticsResponseDTO.class);
         if (cached != null) {
-            log.debug("Analytics cache hit for user {} range {}d", userId, days);
+            log.debug("Analytics cache hit for user {} range {}", userId, allTime ? "all" : days + "d");
             return cached;
         }
 
-        // Get all entries within range
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
-        List<JournalEntry> allEntriesInRange = user.getJournalEntryList().stream()
-                .filter(e -> e.getDate() != null && e.getDate().isAfter(cutoff))
+        // Get all entries within range, or every dated entry for all-time analytics.
+        LocalDateTime cutoff = allTime ? null : LocalDateTime.now().minusDays(days);
+        List<JournalEntry> allEntriesInRange = user.getJournalEntryList() == null
+                ? Collections.emptyList()
+                : user.getJournalEntryList().stream()
+                .filter(e -> e.getDate() != null)
+                .filter(e -> allTime || e.getDate().isAfter(cutoff))
                 .sorted(Comparator.comparing(JournalEntry::getDate))
                 .collect(Collectors.toList());
 
         int totalEntries = allEntriesInRange.size();
 
         // Entries per day (based on ALL entries, not just sentiment-analyzed)
-        double entriesPerDay = days > 0 ? Math.round((double) totalEntries / days * 10.0) / 10.0 : 0.0;
+        double entriesPerDay = 0.0;
+        if (totalEntries > 0) {
+            long denominatorDays;
+            if (allTime) {
+                LocalDate firstEntryDate = allEntriesInRange.get(0).getDate().toLocalDate();
+                denominatorDays = ChronoUnit.DAYS.between(firstEntryDate, LocalDate.now()) + 1;
+            } else {
+                denominatorDays = days;
+            }
+            entriesPerDay = denominatorDays > 0
+                    ? Math.round((double) totalEntries / denominatorDays * 10.0) / 10.0
+                    : 0.0;
+        }
 
         // Filter to only entries with sentiment data for mood metrics
         List<JournalEntry> sentimentEntries = allEntriesInRange.stream()

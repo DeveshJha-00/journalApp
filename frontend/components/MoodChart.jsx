@@ -36,6 +36,63 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function MoodChart({ data, period = "7d" }) {
+  if (period === "all") {
+    const sortedData = [...data].sort((a, b) => a.date.localeCompare(b.date));
+
+    return (
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          data={sortedData}
+          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+
+          <XAxis
+            dataKey="date"
+            tickFormatter={(date) =>
+              format(parseISO(date), "MMM d")
+            }
+          />
+
+          <YAxis
+            yAxisId="left"
+            domain={[0, 10]}
+          />
+
+          <YAxis
+            yAxisId="right"
+            orientation="right"
+            domain={[0, "auto"]}
+            allowDecimals={false}
+          />
+
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+
+          <Line
+            yAxisId="left"
+            type="monotone"
+            dataKey="avgMood"
+            stroke="#f97316"
+            strokeWidth={2}
+            dot={{ r: 4 }}
+            name="Average Mood"
+          />
+
+          <Line
+            yAxisId="right"
+            type="monotone"
+            dataKey="entries"
+            stroke="#3b82f6"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            name="Number of Entries"
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  }
+
   // Fill in all dates in the selected period so lines always render
   const days = parseInt(period);
   const endDate = new Date();
